@@ -8,101 +8,162 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as LoginImport } from './routes/login'
-import { Route as JoinImport } from './routes/join'
-import { Route as IndexImport } from './routes/index'
+import { Route as AuthImport } from './routes/_auth'
+import { Route as AppImport } from './routes/_app'
+
+// Create Virtual Routes
+
+const AppIndexLazyImport = createFileRoute('/_app/')()
+const AuthLoginLazyImport = createFileRoute('/_auth/login')()
+const AuthJoinLazyImport = createFileRoute('/_auth/join')()
 
 // Create/Update Routes
 
-const LoginRoute = LoginImport.update({
-  id: '/login',
-  path: '/login',
+const AuthRoute = AuthImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRoute,
 } as any)
 
-const JoinRoute = JoinImport.update({
-  id: '/join',
-  path: '/join',
+const AppRoute = AppImport.update({
+  id: '/_app',
   getParentRoute: () => rootRoute,
 } as any)
 
-const IndexRoute = IndexImport.update({
+const AppIndexLazyRoute = AppIndexLazyImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
-} as any)
+  getParentRoute: () => AppRoute,
+} as any).lazy(() => import('./routes/_app/index.lazy').then((d) => d.Route))
+
+const AuthLoginLazyRoute = AuthLoginLazyImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any).lazy(() => import('./routes/_auth/login.lazy').then((d) => d.Route))
+
+const AuthJoinLazyRoute = AuthJoinLazyImport.update({
+  id: '/join',
+  path: '/join',
+  getParentRoute: () => AuthRoute,
+} as any).lazy(() => import('./routes/_auth/join.lazy').then((d) => d.Route))
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppImport
       parentRoute: typeof rootRoute
     }
-    '/join': {
-      id: '/join'
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthImport
+      parentRoute: typeof rootRoute
+    }
+    '/_auth/join': {
+      id: '/_auth/join'
       path: '/join'
       fullPath: '/join'
-      preLoaderRoute: typeof JoinImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthJoinLazyImport
+      parentRoute: typeof AuthImport
     }
-    '/login': {
-      id: '/login'
+    '/_auth/login': {
+      id: '/_auth/login'
       path: '/login'
       fullPath: '/login'
-      preLoaderRoute: typeof LoginImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthLoginLazyImport
+      parentRoute: typeof AuthImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexLazyImport
+      parentRoute: typeof AppImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AppRouteChildren {
+  AppIndexLazyRoute: typeof AppIndexLazyRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexLazyRoute: AppIndexLazyRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface AuthRouteChildren {
+  AuthJoinLazyRoute: typeof AuthJoinLazyRoute
+  AuthLoginLazyRoute: typeof AuthLoginLazyRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthJoinLazyRoute: AuthJoinLazyRoute,
+  AuthLoginLazyRoute: AuthLoginLazyRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/join': typeof JoinRoute
-  '/login': typeof LoginRoute
+  '': typeof AuthRouteWithChildren
+  '/join': typeof AuthJoinLazyRoute
+  '/login': typeof AuthLoginLazyRoute
+  '/': typeof AppIndexLazyRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/join': typeof JoinRoute
-  '/login': typeof LoginRoute
+  '': typeof AuthRouteWithChildren
+  '/join': typeof AuthJoinLazyRoute
+  '/login': typeof AuthLoginLazyRoute
+  '/': typeof AppIndexLazyRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/join': typeof JoinRoute
-  '/login': typeof LoginRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_auth': typeof AuthRouteWithChildren
+  '/_auth/join': typeof AuthJoinLazyRoute
+  '/_auth/login': typeof AuthLoginLazyRoute
+  '/_app/': typeof AppIndexLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/join' | '/login'
+  fullPaths: '' | '/join' | '/login' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/join' | '/login'
-  id: '__root__' | '/' | '/join' | '/login'
+  to: '' | '/join' | '/login' | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_auth'
+    | '/_auth/join'
+    | '/_auth/login'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  JoinRoute: typeof JoinRoute
-  LoginRoute: typeof LoginRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  JoinRoute: JoinRoute,
-  LoginRoute: LoginRoute,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -115,19 +176,34 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/join",
-        "/login"
+        "/_app",
+        "/_auth"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
+    "/_app": {
+      "filePath": "_app.tsx",
+      "children": [
+        "/_app/"
+      ]
     },
-    "/join": {
-      "filePath": "join.tsx"
+    "/_auth": {
+      "filePath": "_auth.tsx",
+      "children": [
+        "/_auth/join",
+        "/_auth/login"
+      ]
     },
-    "/login": {
-      "filePath": "login.tsx"
+    "/_auth/join": {
+      "filePath": "_auth/join.lazy.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/login": {
+      "filePath": "_auth/login.lazy.tsx",
+      "parent": "/_auth"
+    },
+    "/_app/": {
+      "filePath": "_app/index.lazy.tsx",
+      "parent": "/_app"
     }
   }
 }

@@ -1,5 +1,6 @@
 {
 	"name": "react-hono-turbo",
+	"author": "Baatchia Riyadh",
 	"private": true,
 	"scripts": {
 		"build": "turbo build",

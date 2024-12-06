@@ -18,6 +18,7 @@
 			"dependsOn": ["^check:unused"]
 		},
 		"dev": {
+			"dependsOn": ["^build"],
 			"cache": false,
 			"persistent": true
 		}
