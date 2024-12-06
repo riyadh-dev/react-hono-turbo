@@ -1,0 +1,12 @@
+{
+	"ignorePaths": ["public", "node_modules", "dist", "bun.lockb", "*.svg"],
+	"words": [
+		"eslintcache",
+		"lockb",
+		"Moropia",
+		"serviceworker",
+		"trivago",
+		"turborepo",
+		"VITE"
+	]
+}
