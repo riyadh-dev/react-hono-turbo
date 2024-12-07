@@ -20,7 +20,7 @@ const app = new Hono()
 
 	.notFound((c) => c.json({ message: `Not found - ${c.req.path}` }, 404))
 	.onError((err, c) => {
-		console.error(err)
+		console.error(err.message)
 		return c.json({ message: 'Internal server error' }, 500)
 	})
 

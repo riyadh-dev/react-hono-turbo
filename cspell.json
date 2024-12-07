@@ -1,5 +1,12 @@
 {
-	"ignorePaths": ["public", "node_modules", "dist", "bun.lockb", "*.svg"],
+	"ignorePaths": [
+		"public",
+		"node_modules",
+		"dist",
+		"build",
+		"bun.lockb",
+		"*.svg"
+	],
 	"words": [
 		"Baatchia",
 		"eslintcache",
