@@ -36,9 +36,9 @@ function JoinPage() {
 					setIsError(true)
 					setIsPending(false)
 				},
-				async onSuccess() {
+				onSuccess() {
 					setIsPending(false)
-					await navigate({ to: '/', replace: true })
+					void navigate({ to: '/', replace: true })
 				},
 			}
 		)
@@ -51,7 +51,7 @@ function JoinPage() {
 					<div>
 						<label
 							htmlFor='name'
-							className='block text-sm font-medium text-gray-700'
+							className='block text-sm font-medium text-white'
 						>
 							Name
 						</label>
@@ -64,9 +64,12 @@ function JoinPage() {
 								aria-describedby='name-error'
 								{...form.register('name')}
 								disabled={isPending}
-								className='w-full rounded border border-gray-500 px-2 py-1 text-lg disabled:bg-gray-50 disabled:text-gray-500'
+								className='w-full rounded border border-gray-400 bg-transparent px-2 py-1 text-lg focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:text-gray-300'
 							/>
-							<div className='pt-1 text-red-700' id='name-error'>
+							<div
+								className='pt-1 text-sm text-rose-600'
+								id='name-error'
+							>
 								{form.formState.errors.name?.message}
 							</div>
 						</div>
@@ -75,7 +78,7 @@ function JoinPage() {
 					<div>
 						<label
 							htmlFor='email'
-							className='block text-sm font-medium text-gray-700'
+							className='block text-sm font-medium text-white'
 						>
 							Email address
 						</label>
@@ -88,9 +91,12 @@ function JoinPage() {
 								aria-describedby='email-error'
 								{...form.register('email')}
 								disabled={isPending}
-								className='w-full rounded border border-gray-500 px-2 py-1 text-lg disabled:bg-gray-50 disabled:text-gray-500'
+								className='w-full rounded border border-gray-400 bg-transparent px-2 py-1 text-lg focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:text-gray-300'
 							/>
-							<div className='pt-1 text-red-700' id='email-error'>
+							<div
+								className='pt-1 text-sm text-rose-600'
+								id='email-error'
+							>
 								{form.formState.errors.email?.message}
 							</div>
 						</div>
@@ -99,7 +105,7 @@ function JoinPage() {
 					<div>
 						<label
 							htmlFor='password'
-							className='block text-sm font-medium text-gray-700'
+							className='block text-sm font-medium text-white'
 						>
 							Password
 						</label>
@@ -111,11 +117,11 @@ function JoinPage() {
 								aria-describedby='password-error'
 								{...form.register('password')}
 								disabled={isPending}
-								className='w-full rounded border border-gray-500 px-2 py-1 text-lg disabled:bg-gray-50 disabled:text-gray-500'
+								className='w-full rounded border border-gray-400 bg-transparent px-2 py-1 text-lg focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:text-gray-300'
 							/>
 
 							<div
-								className='pt-1 text-red-700'
+								className='pt-1 text-sm text-rose-600'
 								id='password-error'
 							>
 								{form.formState.errors.password?.message}
@@ -126,18 +132,18 @@ function JoinPage() {
 					<button
 						type='submit'
 						disabled={isPending}
-						className='w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400 disabled:bg-blue-300'
+						className='w-full rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 					>
 						Sign up
 					</button>
 
-					<div className='text-center text-red-700'>
+					<div className='text-center text-rose-600'>
 						{isError && 'Invalid email or password'}
 					</div>
 
-					<div className='text-center text-sm text-gray-500'>
-						Don&apos;t have an account?{' '}
-						<Link to='/login' className='text-blue-500 underline'>
+					<div className='text-center text-sm text-gray-300'>
+						Already have an account?{' '}
+						<Link to='/login' className='text-indigo-400 underline'>
 							Login
 						</Link>
 					</div>

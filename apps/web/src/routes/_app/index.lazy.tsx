@@ -1,47 +1,47 @@
-import { createLazyFileRoute } from '@tanstack/react-router'
+import { createLazyFileRoute, useNavigate } from '@tanstack/react-router'
+
+import { authClient } from '@/lib/auth-client'
 
 export const Route = createLazyFileRoute('/_app/')({
 	component: HomeComponent,
 })
 
 function HomeComponent() {
+	const { data: session } = authClient.useSession()
+
+	const navigate = useNavigate()
+	const signOut = () =>
+		void authClient.signOut({
+			fetchOptions: { onSuccess: () => void navigate({ to: '/login' }) },
+		})
+
 	return (
-		<main className='relative min-h-screen content-center bg-white'>
-			<h1 className='bg-gradient-to-r from-indigo-500 via-purple-600 to-rose-600 bg-clip-text pb-16 text-center text-7xl font-extrabold tracking-tight text-transparent'>
+		<main className='relative min-h-screen content-center space-y-16'>
+			<h1 className='mx-auto w-fit bg-gradient-to-r from-indigo-400 via-purple-500 to-rose-500 bg-clip-text text-center text-7xl font-extrabold tracking-tight text-transparent'>
 				REACT HONO TURBO
 			</h1>
-			<div className='mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8'>
-				<div className='mt-6 flex flex-wrap justify-center gap-8'>
+
+			<p className='text-center text-2xl font-semibold'>
+				Welcome, {session?.user.name}!
+			</p>
+
+			<div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
+				<div className='flex flex-wrap justify-center gap-8'>
 					{[
 						{
-							src: 'https://user-images.githubusercontent.com/1500684/158238105-e7279a0c-1640-40db-86b0-3d3a10aab824.svg',
-							alt: 'PostgreSQL',
-							href: 'https://www.postgresql.org/',
+							src: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg',
+							alt: 'React',
+							href: 'https://react.dev/',
 						},
 						{
-							src: 'https://user-images.githubusercontent.com/1500684/157764484-ad64a21a-d7fb-47e3-8669-ec046da20c1f.svg',
-							alt: 'Prisma',
-							href: 'https://prisma.io',
+							src: 'https://upload.wikimedia.org/wikipedia/commons/6/60/Hono-logo.svg',
+							alt: 'Hono',
+							href: 'https://hono.dev/',
 						},
 						{
-							src: 'https://user-images.githubusercontent.com/1500684/157764276-a516a239-e377-4a20-b44a-0ac7b65c8c14.svg',
-							alt: 'Tailwind',
-							href: 'https://tailwindcss.com',
-						},
-						{
-							src: 'https://user-images.githubusercontent.com/1500684/157772934-ce0a943d-e9d0-40f8-97f3-f464c0811643.svg',
-							alt: 'Prettier',
-							href: 'https://prettier.io',
-						},
-						{
-							src: 'https://user-images.githubusercontent.com/1500684/157772990-3968ff7c-b551-4c55-a25c-046a32709a8e.svg',
-							alt: 'ESLint',
-							href: 'https://eslint.org',
-						},
-						{
-							src: 'https://user-images.githubusercontent.com/1500684/157773063-20a0ed64-b9f8-4e0b-9d1e-0b65a3d4a6db.svg',
-							alt: 'TypeScript',
-							href: 'https://typescriptlang.org',
+							src: '/turborepo.svg',
+							alt: 'Turbo',
+							href: 'https://turbo.build/repo/docs',
 						},
 					].map((img) => (
 						<a
@@ -58,6 +58,13 @@ function HomeComponent() {
 					))}
 				</div>
 			</div>
+
+			<button
+				onClick={signOut}
+				className='absolute bottom-2 left-2 rounded bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+			>
+				Sign out
+			</button>
 		</main>
 	)
 }
