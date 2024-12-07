@@ -3,9 +3,13 @@
 	"ui": "tui",
 	"tasks": {
 		"build": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^build:lib"],
 			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": [".dist/**", "build/**"]
+			"outputs": ["dist", "build"]
+		},
+		"build:lib": {
+			"inputs": ["$TURBO_DEFAULT$", ".env*"],
+			"outputs": ["dist/lib"]
 		},
 		"lint": {
 			"dependsOn": ["^lint"],
@@ -18,7 +22,7 @@
 			"dependsOn": ["^check:unused"]
 		},
 		"dev": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^build:lib"],
 			"cache": false,
 			"persistent": true
 		}
