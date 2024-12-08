@@ -9,21 +9,22 @@ import env from '@/lib/env'
 
 export const auth = betterAuth({
 	emailAndPassword: { enabled: true },
-	trustedOrigins: [env.CLIENT_ORIGIN],
+	trustedOrigins: env.CLIENT_ORIGINS,
 	database: drizzleAdapter(db, { provider: 'pg' }),
 	user: { modelName: 'usersTable' },
-	session: { modelName: 'sessionsTable' },
 	account: { modelName: 'accountsTable' },
 	verification: { modelName: 'verificationsTable' },
+	session: {
+		modelName: 'sessionsTable',
+		cookieCache: {
+			enabled: true,
+			maxAge: 60 * 60,
+		},
+	},
 })
 
-type TSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>
-
-interface IAuthEnv {
-	Variables: {
-		user: TSession['user']
-		session: TSession['session']
-	}
+export interface IAuthEnv {
+	Variables: (typeof auth.$Infer)['Session']
 }
 
 export function verifyAuth() {
@@ -31,12 +32,10 @@ export function verifyAuth() {
 		const session = await auth.api.getSession({
 			headers: c.req.raw.headers,
 		})
-		if (!session) {
-			const res = new Response('Unauthorized', {
-				status: 401,
+		if (!session)
+			throw new HTTPException(401, {
+				res: c.json({ message: 'Unauthorized' }),
 			})
-			throw new HTTPException(401, { res })
-		}
 
 		c.set('user', session.user)
 		c.set('session', session.session)

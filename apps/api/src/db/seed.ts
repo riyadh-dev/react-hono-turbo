@@ -16,8 +16,9 @@ async function main() {
 	await seed(db, {
 		users: schema.usersTable,
 		accounts: schema.accountsTable,
+		notes: schema.notesTable,
 	}).refine((f) => ({
-		users: { count: 5, with: { accounts: 1 } },
+		users: { count: 5, with: { accounts: 1, notes: 5 } },
 		accounts: {
 			columns: {
 				providerId: f.default({ defaultValue: 'credential' }),
@@ -28,6 +29,12 @@ async function main() {
 				accessTokenExpiresAt: f.default({ defaultValue: null }),
 				refreshTokenExpiresAt: f.default({ defaultValue: null }),
 				password: f.default({ defaultValue: hash }),
+			},
+		},
+		notes: {
+			columns: {
+				title: f.loremIpsum({ sentencesCount: 1 }),
+				body: f.loremIpsum({ sentencesCount: 4 }),
 			},
 		},
 	}))

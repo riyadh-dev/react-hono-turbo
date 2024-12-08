@@ -4,7 +4,10 @@ const envSchema = z.object({
 	NODE_ENV: z.enum(['development', 'production']).default('development'),
 	API_PORT: z.coerce.number(),
 	DATABASE_URL: z.string().url(),
-	CLIENT_ORIGIN: z.string().url(),
+	CLIENT_ORIGINS: z
+		.string()
+		.transform((origins) => origins.split(','))
+		.pipe(z.array(z.string().url()).min(1)),
 	JWT_SECRET: z.string().min(32),
 	BETTER_AUTH_SECRET: z.string().min(32),
 })
