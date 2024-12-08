@@ -27,6 +27,9 @@ declare module '@tanstack/react-router' {
 // eslint-disable-next-line react-refresh/only-export-components
 function App() {
 	const auth = useAuth()
+
+	if (!auth.isReady) return <div>Loading...</div>
+
 	return <RouterProvider router={router} context={{ auth }} />
 }
 

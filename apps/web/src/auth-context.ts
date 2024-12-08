@@ -10,6 +10,7 @@ export interface ICredentials {
 export type TSession = (typeof authClient.$Infer)['Session']
 
 export interface IAuthContext {
+	isReady: boolean
 	isAuth: boolean
 	session: (typeof authClient.$Infer)['Session'] | null
 	login: (credentials: ICredentials) => Promise<void>
