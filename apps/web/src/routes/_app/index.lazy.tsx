@@ -1,24 +1,16 @@
 import { createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { authClient } from '@/lib/auth-client'
-
 export const Route = createLazyFileRoute('/_app/')({
 	component: HomeComponent,
 })
 
 function HomeComponent() {
-	const { user } = Route.useRouteContext().session!
+	const { logout, session } = Route.useRouteContext().auth
 
 	const navigate = useNavigate()
 
 	const signOut = () =>
-		void authClient.signOut({
-			fetchOptions: {
-				async onSuccess() {
-					await navigate({ to: '/login' })
-				},
-			},
-		})
+		void logout().then(() => void navigate({ to: '/login' }))
 
 	return (
 		<main className='relative min-h-screen content-center space-y-16'>
@@ -27,7 +19,7 @@ function HomeComponent() {
 			</h1>
 
 			<p className='text-center text-2xl font-semibold'>
-				Welcome, {user.name}!
+				Welcome, {session!.user.email}!
 			</p>
 
 			<div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>

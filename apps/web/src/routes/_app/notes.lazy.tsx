@@ -8,7 +8,7 @@ export const Route = createLazyFileRoute('/_app/notes')({
 })
 
 function NotesPage() {
-	const { user } = Route.useRouteContext().session!
+	const { user } = Route.useRouteContext().auth.session!
 
 	const notesQuery = useSuspenseQuery({
 		queryKey: ['notes'],

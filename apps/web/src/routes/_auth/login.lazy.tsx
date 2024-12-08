@@ -2,7 +2,6 @@ import { Link, createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { z } from 'zod'
 
-import { authClient } from '@/lib/auth-client'
 import { useZodForm } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_auth/login')({
@@ -15,32 +14,19 @@ const schema = z.object({
 })
 
 function LoginPage() {
+	const { login } = Route.useRouteContext().auth
+	const navigate = useNavigate()
+	const form = useZodForm({ schema })
+
 	const [isPending, setIsPending] = useState(false)
 	const [isError, setIsError] = useState(false)
 
-	const navigate = useNavigate()
-
-	const form = useZodForm({ schema })
-
-	const onSubmit = form.handleSubmit(async (values) => {
+	const onSubmit = form.handleSubmit((credentials) => {
 		setIsError(false)
-
-		await authClient.signIn.email(
-			{
-				...values,
-			},
-			{
-				onRequest: () => setIsPending(true),
-				onError() {
-					setIsError(true)
-					setIsPending(false)
-				},
-				async onSuccess() {
-					setIsPending(false)
-					await navigate({ to: '/', replace: true })
-				},
-			}
-		)
+		login(credentials)
+			.then(() => navigate({ to: '/', replace: true }))
+			.catch(() => setIsError(true))
+			.finally(() => setIsPending(false))
 	})
 
 	return (
