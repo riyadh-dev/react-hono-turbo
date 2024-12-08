@@ -36,9 +36,9 @@ function JoinPage() {
 					setIsError(true)
 					setIsPending(false)
 				},
-				onSuccess() {
+				async onSuccess() {
 					setIsPending(false)
-					void navigate({ to: '/', replace: true })
+					await navigate({ to: '/', replace: true })
 				},
 			}
 		)

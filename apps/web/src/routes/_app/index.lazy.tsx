@@ -7,12 +7,17 @@ export const Route = createLazyFileRoute('/_app/')({
 })
 
 function HomeComponent() {
-	const { data: session } = authClient.useSession()
+	const { user } = Route.useRouteContext().session!
 
 	const navigate = useNavigate()
+
 	const signOut = () =>
 		void authClient.signOut({
-			fetchOptions: { onSuccess: () => void navigate({ to: '/login' }) },
+			fetchOptions: {
+				async onSuccess() {
+					await navigate({ to: '/login' })
+				},
+			},
 		})
 
 	return (
@@ -22,7 +27,7 @@ function HomeComponent() {
 			</h1>
 
 			<p className='text-center text-2xl font-semibold'>
-				Welcome, {session?.user.name}!
+				Welcome, {user.name}!
 			</p>
 
 			<div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
