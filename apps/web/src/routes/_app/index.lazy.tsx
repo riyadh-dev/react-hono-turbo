@@ -1,4 +1,4 @@
-import { createLazyFileRoute, useNavigate } from '@tanstack/react-router'
+import { Link, createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 
 export const Route = createLazyFileRoute('/_app/')({
 	component: HomeComponent,
@@ -13,13 +13,13 @@ function HomeComponent() {
 		void logout().then(() => void navigate({ to: '/login' }))
 
 	return (
-		<main className='relative min-h-screen content-center space-y-16'>
+		<main className='relative min-h-screen content-center space-y-12'>
 			<h1 className='mx-auto w-fit bg-gradient-to-r from-indigo-400 via-purple-500 to-rose-500 bg-clip-text text-center text-7xl font-extrabold tracking-tight text-transparent'>
 				REACT HONO TURBO
 			</h1>
 
 			<p className='text-center text-2xl font-semibold'>
-				Welcome, {session!.user.email}!
+				Welcome, {session!.user.name}!
 			</p>
 
 			<div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
@@ -56,12 +56,20 @@ function HomeComponent() {
 				</div>
 			</div>
 
-			<button
-				onClick={signOut}
-				className='absolute bottom-2 left-2 rounded bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
-			>
-				Sign out
-			</button>
+			<div className='absolute bottom-2 left-2 flex gap-x-2'>
+				<button
+					onClick={signOut}
+					className='rounded bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+				>
+					Sign out
+				</button>
+				<Link
+					to='/notes'
+					className='rounded border border-indigo-500 px-4 py-2 text-sm font-semibold text-indigo-500 hover:bg-indigo-100 focus:bg-indigo-200 disabled:text-indigo-300'
+				>
+					Check Notes
+				</Link>
+			</div>
 		</main>
 	)
 }
