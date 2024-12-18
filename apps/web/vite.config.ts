@@ -1,10 +1,7 @@
-import svgrJsx from '@svgr/plugin-jsx'
-import svgrSvgo from '@svgr/plugin-svgo'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react'
 import path from 'path'
 import { defineConfig } from 'vite'
-import svgr from 'vite-plugin-svgr'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,13 +11,7 @@ export default defineConfig({
 		alias: { '@': path.resolve(__dirname, 'src') },
 	},
 	plugins: [
-		react(),
+		react({ babel: { plugins: ['babel-plugin-react-compiler'] } }),
 		TanStackRouterVite({ generatedRouteTree: './src/route-tree.gen.ts' }),
-		svgr({
-			svgrOptions: {
-				plugins: [svgrSvgo, svgrJsx],
-				svgoConfig: { floatPrecision: 2 },
-			},
-		}),
 	],
 })

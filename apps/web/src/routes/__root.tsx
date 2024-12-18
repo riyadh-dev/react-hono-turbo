@@ -17,7 +17,7 @@ function RootComponent() {
 	return (
 		<>
 			<Outlet />
-			<div className='pointer-events-none fixed inset-0 z-10 bg-[url(/noise.png)] opacity-5' />
+			<div className='pointer-events-none absolute inset-0 z-10 bg-[url(/noise.png)] bg-[size:8rem] opacity-5' />
 			<TanStackRouterDevtools position='bottom-right' />
 		</>
 	)

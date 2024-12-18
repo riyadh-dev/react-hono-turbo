@@ -1,8 +1,7 @@
-import { Link, createLazyFileRoute, useNavigate } from '@tanstack/react-router'
+import { Link, createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { z } from 'zod'
 
-import { authClient } from '@/lib/auth-client'
 import { useZodForm } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_auth/join')({
@@ -16,135 +15,121 @@ const schema = z.object({
 })
 
 function JoinPage() {
+	const { auth } = Route.useRouteContext()
+	const router = useRouter()
+	const form = useZodForm({ schema })
+
 	const [isPending, setIsPending] = useState(false)
 	const [isError, setIsError] = useState(false)
 
-	const navigate = useNavigate()
-
-	const form = useZodForm({ schema })
-
-	const onSubmit = form.handleSubmit(async (values) => {
-		setIsError(false)
-
-		await authClient.signUp.email(
-			{
-				...values,
+	const onSubmit = form.handleSubmit((credentials) => {
+		auth.signUp({
+			...credentials,
+			fetchOptions: {
+				onRequest() {
+					setIsPending(true)
+					setIsError(false)
+				},
+				onError: () => setIsError(true),
 			},
-			{
-				onRequest: () => setIsPending(true),
-				onError() {
-					setIsError(true)
-					setIsPending(false)
-				},
-				async onSuccess() {
-					setIsPending(false)
-					await navigate({ to: '/', replace: true })
-				},
-			}
-		)
+		})
+			.then(() => router.invalidate())
+			.catch(() => setIsError(true))
+			.finally(() => setIsPending(false))
 	})
 
 	return (
-		<div className='flex h-svh flex-col justify-center'>
-			<div className='mx-auto w-full max-w-md px-8'>
-				<form onSubmit={onSubmit} noValidate className='space-y-6'>
-					<div>
-						<label
-							htmlFor='name'
-							className='block text-sm font-medium text-white'
-						>
+		<div className='h-svh content-center'>
+			<div className='mx-auto max-w-md px-8'>
+				<form onSubmit={onSubmit} noValidate className='space-y-3'>
+					<div className='space-y-2'>
+						<label htmlFor='name' className='block font-medium'>
 							Name
 						</label>
-						<div className='mt-1'>
-							<input
-								id='name'
-								required
-								type='text'
-								autoComplete='name'
-								aria-describedby='name-error'
-								{...form.register('name')}
-								disabled={isPending}
-								className='w-full rounded border border-gray-400 bg-transparent px-2 py-1 text-lg focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:text-gray-300'
-							/>
-							<div
-								className='pt-1 text-sm text-rose-600'
-								id='name-error'
-							>
-								{form.formState.errors.name?.message}
-							</div>
+
+						<input
+							id='name'
+							required
+							type='text'
+							autoComplete='name'
+							aria-describedby='name-error'
+							{...form.register('name')}
+							disabled={isPending}
+							className='w-full rounded border border-gray-400 bg-transparent px-4 py-2 text-lg focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:text-gray-300'
+						/>
+
+						<div
+							className='h-5 text-sm text-rose-600'
+							id='name-error'
+						>
+							{form.formState.errors.name?.message}
 						</div>
 					</div>
 
-					<div>
-						<label
-							htmlFor='email'
-							className='block text-sm font-medium text-white'
-						>
+					<div className='space-y-2'>
+						<label htmlFor='email' className='block font-medium'>
 							Email address
 						</label>
-						<div className='mt-1'>
-							<input
-								id='email'
-								required
-								type='email'
-								autoComplete='email'
-								aria-describedby='email-error'
-								{...form.register('email')}
-								disabled={isPending}
-								className='w-full rounded border border-gray-400 bg-transparent px-2 py-1 text-lg focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:text-gray-300'
-							/>
-							<div
-								className='pt-1 text-sm text-rose-600'
-								id='email-error'
-							>
-								{form.formState.errors.email?.message}
-							</div>
+
+						<input
+							id='email'
+							required
+							type='email'
+							autoComplete='email'
+							aria-describedby='email-error'
+							{...form.register('email')}
+							disabled={isPending}
+							className='w-full rounded border border-gray-400 bg-transparent px-4 py-2 text-lg focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:text-gray-300'
+						/>
+
+						<div
+							className='h-5 text-sm text-rose-600'
+							id='email-error'
+						>
+							{form.formState.errors.email?.message}
 						</div>
 					</div>
 
-					<div>
-						<label
-							htmlFor='password'
-							className='block text-sm font-medium text-white'
-						>
+					<div className='space-y-2'>
+						<label htmlFor='password' className='block font-medium'>
 							Password
 						</label>
-						<div className='mt-1'>
-							<input
-								id='password'
-								type='password'
-								autoComplete='current-password'
-								aria-describedby='password-error'
-								{...form.register('password')}
-								disabled={isPending}
-								className='w-full rounded border border-gray-400 bg-transparent px-2 py-1 text-lg focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:text-gray-300'
-							/>
 
-							<div
-								className='pt-1 text-sm text-rose-600'
-								id='password-error'
-							>
-								{form.formState.errors.password?.message}
-							</div>
+						<input
+							id='password'
+							type='password'
+							autoComplete='current-password'
+							aria-describedby='password-error'
+							{...form.register('password')}
+							disabled={isPending}
+							className='w-full rounded border border-gray-400 bg-transparent px-4 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:text-gray-300'
+						/>
+
+						<div
+							className='h-5 text-sm text-rose-600'
+							id='password-error'
+						>
+							{form.formState.errors.password?.message}
 						</div>
 					</div>
 
-					<button
-						type='submit'
-						disabled={isPending}
-						className='w-full rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
-					>
-						Sign up
-					</button>
-
-					<div className='text-center text-rose-600'>
-						{isError && 'Invalid email or password'}
+					<div className='space-y-2'>
+						<button
+							type='submit'
+							disabled={isPending}
+							className='w-full rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+						>
+							Log in
+						</button>
+						<div className='h-5 text-center text-sm text-rose-600'>
+							{isError && 'Invalid email or password'}
+						</div>
 					</div>
 
-					<div className='text-center text-sm text-gray-300'>
+					<div className='text-center text-gray-300'>
 						Already have an account?{' '}
 						<Link to='/login' className='text-indigo-400 underline'>
-							Login
+							Log in
 						</Link>
 					</div>
 				</form>

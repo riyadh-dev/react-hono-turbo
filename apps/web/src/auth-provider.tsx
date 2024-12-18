@@ -1,6 +1,11 @@
 import { ReactNode, useEffect, useState } from 'react'
 
-import AuthContext, { ICredentials, TSession } from './auth-context'
+import AuthContext, {
+	TSession,
+	TSignInParams,
+	TSignOutParams,
+	TSignUpParams,
+} from './auth-context'
 import { authClient } from './lib/auth-client'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -8,19 +13,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [session, setSession] = useState<TSession | null>(null)
 	const isAuth = !!session
 
-	const logout = async () => {
-		await authClient.signOut()
-		setSession(null)
+	const signUp = async (params: TSignUpParams) => {
+		const { data } = await authClient.signUp.email(params)
+		setSession(data)
 	}
 
-	const login = async (credentials: ICredentials) => {
-		const { data } = await authClient.signIn.email(credentials)
+	const signIn = async (params: TSignInParams) => {
+		const { data } = await authClient.signIn.email(params)
 		setSession(data)
+	}
+
+	const signOut = async (params: TSignOutParams) => {
+		await authClient.signOut(params)
+		setSession(null)
 	}
 
 	const updateSession = () => {
 		authClient
-			.getSession()
+			.getSession({ fetchOptions: { onError: () => setSession(null) } })
 			.then(({ data }) => setSession(data))
 			.catch(() => setSession(null))
 			.finally(() => setReady(true))
@@ -58,7 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	return (
 		<AuthContext.Provider
-			value={{ isReady, isAuth, session, login, logout }}
+			value={{
+				isReady,
+				isAuth,
+				session,
+				signUp,
+				signIn,
+				signOut,
+			}}
 		>
 			{children}
 		</AuthContext.Provider>

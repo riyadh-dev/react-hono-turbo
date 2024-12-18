@@ -5,12 +5,12 @@ export const Route = createLazyFileRoute('/_app/')({
 })
 
 function HomeComponent() {
-	const { logout, session } = Route.useRouteContext().auth
+	const { auth } = Route.useRouteContext()
 
 	const navigate = useNavigate()
 
 	const signOut = () =>
-		void logout().then(() => void navigate({ to: '/login' }))
+		void auth.signOut().then(() => navigate({ to: '/login' }))
 
 	return (
 		<main className='relative min-h-screen content-center space-y-12'>
@@ -19,7 +19,7 @@ function HomeComponent() {
 			</h1>
 
 			<p className='text-center text-2xl font-semibold'>
-				Welcome, {session!.user.name}!
+				Welcome, {auth.session!.user.name}!
 			</p>
 
 			<div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>

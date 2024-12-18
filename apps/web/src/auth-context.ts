@@ -2,10 +2,9 @@ import { createContext, useContext } from 'react'
 
 import { authClient } from './lib/auth-client'
 
-export interface ICredentials {
-	email: string
-	password: string
-}
+export type TSignUpParams = Parameters<typeof authClient.signUp.email>[0]
+export type TSignInParams = Parameters<typeof authClient.signIn.email>[0]
+export type TSignOutParams = Parameters<typeof authClient.signOut>[0]
 
 export type TSession = (typeof authClient.$Infer)['Session']
 
@@ -13,8 +12,9 @@ export interface IAuthContext {
 	isReady: boolean
 	isAuth: boolean
 	session: (typeof authClient.$Infer)['Session'] | null
-	login: (credentials: ICredentials) => Promise<void>
-	logout: () => Promise<void>
+	signUp: (params: TSignUpParams) => Promise<void>
+	signIn: (params: TSignInParams) => Promise<void>
+	signOut: (params?: TSignOutParams) => Promise<void>
 }
 
 const AuthContext = createContext<IAuthContext | null>(null)
