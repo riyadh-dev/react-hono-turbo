@@ -1,14 +1,14 @@
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
-import { createLazyFileRoute, useNavigate } from '@tanstack/react-router'
+import { Link, createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 
 import api from '@/lib/api'
 import { assertValidResponse } from '@/lib/utils'
 
-export const Route = createLazyFileRoute('/_app/notes/$id')({
-	component: RouteComponent,
+export const Route = createLazyFileRoute('/_app/notes/$id/')({
+	component: NotePage,
 })
 
-function RouteComponent() {
+function NotePage() {
 	const { id } = Route.useParams()
 	const { queryClient } = Route.useRouteContext()
 	const navigate = useNavigate()
@@ -43,13 +43,25 @@ function RouteComponent() {
 			<h3 className='text-2xl font-bold'>{noteQuery.data.title}</h3>
 			<p className='py-6'>{noteQuery.data.body}</p>
 			<hr className='my-4' />
-			<button
-				onClick={deleteNote}
-				disabled={deleteNoteMutation.isPending}
-				className='rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
-			>
-				{deleteNoteMutation.isPending ? 'Deleting...' : 'Delete Note'}
-			</button>
+			<div className='flex gap-2'>
+				<button
+					onClick={deleteNote}
+					disabled={deleteNoteMutation.isPending}
+					className='rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+				>
+					{deleteNoteMutation.isPending
+						? 'Deleting...'
+						: 'Delete Note'}
+				</button>
+
+				<Link
+					to='/notes/$id/edit'
+					params={{ id }}
+					className='rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+				>
+					Edit
+				</Link>
+			</div>
 		</div>
 	)
 }

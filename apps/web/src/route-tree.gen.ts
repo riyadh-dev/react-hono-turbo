@@ -23,7 +23,8 @@ const AuthLoginLazyImport = createFileRoute('/_auth/login')()
 const AuthJoinLazyImport = createFileRoute('/_auth/join')()
 const AppNotesLazyImport = createFileRoute('/_app/notes')()
 const AppNotesNewLazyImport = createFileRoute('/_app/notes/new')()
-const AppNotesIdLazyImport = createFileRoute('/_app/notes/$id')()
+const AppNotesIdIndexLazyImport = createFileRoute('/_app/notes/$id/')()
+const AppNotesIdEditLazyImport = createFileRoute('/_app/notes/$id/edit')()
 
 // Create/Update Routes
 
@@ -69,12 +70,20 @@ const AppNotesNewLazyRoute = AppNotesNewLazyImport.update({
   import('./routes/_app/notes.new.lazy').then((d) => d.Route),
 )
 
-const AppNotesIdLazyRoute = AppNotesIdLazyImport.update({
-  id: '/$id',
-  path: '/$id',
+const AppNotesIdIndexLazyRoute = AppNotesIdIndexLazyImport.update({
+  id: '/$id/',
+  path: '/$id/',
   getParentRoute: () => AppNotesLazyRoute,
 } as any).lazy(() =>
-  import('./routes/_app/notes.$id.lazy').then((d) => d.Route),
+  import('./routes/_app/notes.$id.index.lazy').then((d) => d.Route),
+)
+
+const AppNotesIdEditLazyRoute = AppNotesIdEditLazyImport.update({
+  id: '/$id/edit',
+  path: '/$id/edit',
+  getParentRoute: () => AppNotesLazyRoute,
+} as any).lazy(() =>
+  import('./routes/_app/notes.$id.edit.lazy').then((d) => d.Route),
 )
 
 // Populate the FileRoutesByPath interface
@@ -123,18 +132,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexLazyImport
       parentRoute: typeof AppImport
     }
-    '/_app/notes/$id': {
-      id: '/_app/notes/$id'
-      path: '/$id'
-      fullPath: '/notes/$id'
-      preLoaderRoute: typeof AppNotesIdLazyImport
-      parentRoute: typeof AppNotesLazyImport
-    }
     '/_app/notes/new': {
       id: '/_app/notes/new'
       path: '/new'
       fullPath: '/notes/new'
       preLoaderRoute: typeof AppNotesNewLazyImport
+      parentRoute: typeof AppNotesLazyImport
+    }
+    '/_app/notes/$id/edit': {
+      id: '/_app/notes/$id/edit'
+      path: '/$id/edit'
+      fullPath: '/notes/$id/edit'
+      preLoaderRoute: typeof AppNotesIdEditLazyImport
+      parentRoute: typeof AppNotesLazyImport
+    }
+    '/_app/notes/$id/': {
+      id: '/_app/notes/$id/'
+      path: '/$id'
+      fullPath: '/notes/$id'
+      preLoaderRoute: typeof AppNotesIdIndexLazyImport
       parentRoute: typeof AppNotesLazyImport
     }
   }
@@ -143,13 +159,15 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface AppNotesLazyRouteChildren {
-  AppNotesIdLazyRoute: typeof AppNotesIdLazyRoute
   AppNotesNewLazyRoute: typeof AppNotesNewLazyRoute
+  AppNotesIdEditLazyRoute: typeof AppNotesIdEditLazyRoute
+  AppNotesIdIndexLazyRoute: typeof AppNotesIdIndexLazyRoute
 }
 
 const AppNotesLazyRouteChildren: AppNotesLazyRouteChildren = {
-  AppNotesIdLazyRoute: AppNotesIdLazyRoute,
   AppNotesNewLazyRoute: AppNotesNewLazyRoute,
+  AppNotesIdEditLazyRoute: AppNotesIdEditLazyRoute,
+  AppNotesIdIndexLazyRoute: AppNotesIdIndexLazyRoute,
 }
 
 const AppNotesLazyRouteWithChildren = AppNotesLazyRoute._addFileChildren(
@@ -186,8 +204,9 @@ export interface FileRoutesByFullPath {
   '/join': typeof AuthJoinLazyRoute
   '/login': typeof AuthLoginLazyRoute
   '/': typeof AppIndexLazyRoute
-  '/notes/$id': typeof AppNotesIdLazyRoute
   '/notes/new': typeof AppNotesNewLazyRoute
+  '/notes/$id/edit': typeof AppNotesIdEditLazyRoute
+  '/notes/$id': typeof AppNotesIdIndexLazyRoute
 }
 
 export interface FileRoutesByTo {
@@ -196,8 +215,9 @@ export interface FileRoutesByTo {
   '/join': typeof AuthJoinLazyRoute
   '/login': typeof AuthLoginLazyRoute
   '/': typeof AppIndexLazyRoute
-  '/notes/$id': typeof AppNotesIdLazyRoute
   '/notes/new': typeof AppNotesNewLazyRoute
+  '/notes/$id/edit': typeof AppNotesIdEditLazyRoute
+  '/notes/$id': typeof AppNotesIdIndexLazyRoute
 }
 
 export interface FileRoutesById {
@@ -208,8 +228,9 @@ export interface FileRoutesById {
   '/_auth/join': typeof AuthJoinLazyRoute
   '/_auth/login': typeof AuthLoginLazyRoute
   '/_app/': typeof AppIndexLazyRoute
-  '/_app/notes/$id': typeof AppNotesIdLazyRoute
   '/_app/notes/new': typeof AppNotesNewLazyRoute
+  '/_app/notes/$id/edit': typeof AppNotesIdEditLazyRoute
+  '/_app/notes/$id/': typeof AppNotesIdIndexLazyRoute
 }
 
 export interface FileRouteTypes {
@@ -220,10 +241,19 @@ export interface FileRouteTypes {
     | '/join'
     | '/login'
     | '/'
-    | '/notes/$id'
     | '/notes/new'
+    | '/notes/$id/edit'
+    | '/notes/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '' | '/notes' | '/join' | '/login' | '/' | '/notes/$id' | '/notes/new'
+  to:
+    | ''
+    | '/notes'
+    | '/join'
+    | '/login'
+    | '/'
+    | '/notes/new'
+    | '/notes/$id/edit'
+    | '/notes/$id'
   id:
     | '__root__'
     | '/_app'
@@ -232,8 +262,9 @@ export interface FileRouteTypes {
     | '/_auth/join'
     | '/_auth/login'
     | '/_app/'
-    | '/_app/notes/$id'
     | '/_app/notes/new'
+    | '/_app/notes/$id/edit'
+    | '/_app/notes/$id/'
   fileRoutesById: FileRoutesById
 }
 
@@ -279,8 +310,9 @@ export const routeTree = rootRoute
       "filePath": "_app/notes.lazy.tsx",
       "parent": "/_app",
       "children": [
-        "/_app/notes/$id",
-        "/_app/notes/new"
+        "/_app/notes/new",
+        "/_app/notes/$id/edit",
+        "/_app/notes/$id/"
       ]
     },
     "/_auth/join": {
@@ -295,12 +327,16 @@ export const routeTree = rootRoute
       "filePath": "_app/index.lazy.tsx",
       "parent": "/_app"
     },
-    "/_app/notes/$id": {
-      "filePath": "_app/notes.$id.lazy.tsx",
-      "parent": "/_app/notes"
-    },
     "/_app/notes/new": {
       "filePath": "_app/notes.new.lazy.tsx",
+      "parent": "/_app/notes"
+    },
+    "/_app/notes/$id/edit": {
+      "filePath": "_app/notes.$id.edit.lazy.tsx",
+      "parent": "/_app/notes"
+    },
+    "/_app/notes/$id/": {
+      "filePath": "_app/notes.$id.index.lazy.tsx",
       "parent": "/_app/notes"
     }
   }
