@@ -13,17 +13,15 @@ import RouteError from './components/route-error'
 
 const queryClient = new QueryClient({
 	defaultOptions: {
-		queries: { retry },
-		mutations: { retry },
+		queries: {
+			retry(_, error) {
+				if (error.message === 'UNAUTHORIZED') return false
+				return true
+			},
+		},
+		mutations: { retry: false },
 	},
 })
-
-function retry(_: unknown, error: unknown) {
-	if (error instanceof Error && error.message === 'UNAUTHORIZED') {
-		return false
-	}
-	return true
-}
 
 const router = createRouter({
 	routeTree,

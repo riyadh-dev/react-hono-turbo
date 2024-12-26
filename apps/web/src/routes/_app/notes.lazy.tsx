@@ -48,7 +48,7 @@ function NotesPage() {
 			<main className='flex grow items-stretch'>
 				<div className='w-80 border-r border-stone-400'>
 					<Link
-						to='/'
+						to='/notes/new'
 						className='block border-b border-stone-400 p-4 text-lg text-indigo-500'
 					>
 						+ New Note
