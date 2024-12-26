@@ -1,4 +1,4 @@
-import { Link, createLazyFileRoute, useRouter } from '@tanstack/react-router'
+import { Link, createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { z } from 'zod'
 
@@ -9,31 +9,23 @@ export const Route = createLazyFileRoute('/_auth/join')({
 })
 
 const schema = z.object({
-	name: z.string().min(3),
+	username: z.string().min(3),
 	email: z.string().email(),
 	password: z.string().min(8),
 })
 
 function JoinPage() {
 	const { auth } = Route.useRouteContext()
-	const router = useRouter()
 	const form = useZodForm({ schema })
 
 	const [isPending, setIsPending] = useState(false)
 	const [isError, setIsError] = useState(false)
 
-	const onSubmit = form.handleSubmit((credentials) => {
-		auth.signUp({
-			...credentials,
-			fetchOptions: {
-				onRequest() {
-					setIsPending(true)
-					setIsError(false)
-				},
-				onError: () => setIsError(true),
-			},
-		})
-			.then(() => router.invalidate())
+	const navigate = useNavigate()
+
+	const onSubmit = form.handleSubmit((form) => {
+		auth.signUp(form)
+			.then(() => void navigate({ to: '/login' }))
 			.catch(() => setIsError(true))
 			.finally(() => setIsPending(false))
 	})
@@ -53,7 +45,7 @@ function JoinPage() {
 							type='text'
 							autoComplete='name'
 							aria-describedby='name-error'
-							{...form.register('name')}
+							{...form.register('username')}
 							disabled={isPending}
 							className='w-full rounded border border-gray-400 bg-transparent px-4 py-2 text-lg focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:text-gray-300'
 						/>
@@ -62,7 +54,7 @@ function JoinPage() {
 							className='h-5 text-sm text-rose-600'
 							id='name-error'
 						>
-							{form.formState.errors.name?.message}
+							{form.formState.errors.username?.message}
 						</div>
 					</div>
 

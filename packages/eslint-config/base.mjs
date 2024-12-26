@@ -4,10 +4,18 @@ import ts from 'typescript-eslint'
 
 /** @type {import("eslint").Linter.Config} */
 export default [
-	{ ignores: ['dist', 'build', 'eslint.config.mjs'] },
+	{
+		ignores: [
+			'node_modules',
+			'public',
+			'.turbo',
+			'dist',
+			'build',
+			'*.{js,cjs,mjs}',
+		],
+	},
 	js.configs.recommended,
-	...ts.configs.recommendedTypeChecked,
-	...ts.configs.stylisticTypeChecked,
+	...ts.configs.recommended,
 	prettier,
 	{
 		rules: {

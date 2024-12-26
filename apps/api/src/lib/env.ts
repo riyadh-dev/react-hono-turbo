@@ -9,7 +9,8 @@ const envSchema = z.object({
 		.transform((origins) => origins.split(','))
 		.pipe(z.array(z.string().url()).min(1)),
 	JWT_SECRET: z.string().min(32),
-	BETTER_AUTH_SECRET: z.string().min(32),
+	COOKIE_SECRET: z.string().min(32),
+	SESSION_EXP: z.coerce.number().int().min(1),
 })
 
 const parsedEnv = envSchema.safeParse(process.env)

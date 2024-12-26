@@ -1,20 +1,29 @@
+import { Client } from 'api/hc'
 import { createContext, useContext } from 'react'
 
-import { authClient } from './lib/auth-client'
+export interface ISignUpForm {
+	username: string
+	email: string
+	password: string
+}
 
-export type TSignUpParams = Parameters<typeof authClient.signUp.email>[0]
-export type TSignInParams = Parameters<typeof authClient.signIn.email>[0]
-export type TSignOutParams = Parameters<typeof authClient.signOut>[0]
+export interface ISignInForm {
+	email: string
+	password: string
+}
 
-export type TSession = (typeof authClient.$Infer)['Session']
+export type TUser = Awaited<
+	ReturnType<
+		Awaited<ReturnType<Client['api']['auth']['sign-in']['$post']>>['json']
+	>
+>
 
 export interface IAuthContext {
-	isReady: boolean
 	isAuth: boolean
-	session: (typeof authClient.$Infer)['Session'] | null
-	signUp: (params: TSignUpParams) => Promise<void>
-	signIn: (params: TSignInParams) => Promise<void>
-	signOut: (params?: TSignOutParams) => Promise<void>
+	user: TUser | null
+	signUp: (form: ISignUpForm) => Promise<void>
+	signIn: (form: ISignInForm) => Promise<void>
+	signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<IAuthContext | null>(null)

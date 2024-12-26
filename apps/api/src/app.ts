@@ -3,9 +3,9 @@ import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { logger } from 'hono/logger'
 
+import authRoutes from '@/routes/auth'
 import notesRoutes from '@/routes/notes'
 
-import { auth } from '@/lib/auth'
 import env from '@/lib/env'
 
 const app = new Hono()
@@ -32,11 +32,9 @@ const app = new Hono()
 	})
 
 	.get('/health', (c) => c.json({ message: 'Health OK' }))
+
 	.basePath('/api')
-
-	.get('/auth/*', (c) => auth.handler(c.req.raw))
-	.post('/auth/*', (c) => auth.handler(c.req.raw))
-
+	.route('/auth', authRoutes)
 	.route('/notes', notesRoutes)
 
 export default app

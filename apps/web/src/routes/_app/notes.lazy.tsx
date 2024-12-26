@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-router'
 
 import api from '@/lib/api'
+import { assertValidResponse } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_app/notes')({
 	component: NotesPage,
@@ -14,9 +15,8 @@ export const Route = createLazyFileRoute('/_app/notes')({
 
 function NotesPage() {
 	const { auth } = Route.useRouteContext()
-	const user = auth.session!.user
-
 	const navigate = useNavigate()
+
 	const signOut = () =>
 		void auth.signOut().then(() => navigate({ to: '/login' }))
 
@@ -24,10 +24,12 @@ function NotesPage() {
 		queryKey: ['notes'],
 		async queryFn() {
 			const res = await api.notes.$get()
+			assertValidResponse(res.status)
 			return await res.json()
 		},
 	})
 
+	const user = auth.user!
 	return (
 		<div className='flex h-full min-h-screen flex-col'>
 			<header className='flex items-center justify-between bg-stone-900 p-4 text-white'>

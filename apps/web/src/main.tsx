@@ -9,13 +9,28 @@ import { AuthProvider } from '@/auth-provider'
 import '@/index.css'
 import { routeTree } from '@/route-tree.gen'
 
-const queryClient = new QueryClient()
+import RouteError from './components/route-error'
+
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: { retry },
+		mutations: { retry },
+	},
+})
+
+function retry(_: unknown, error: unknown) {
+	if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+		return false
+	}
+	return true
+}
 
 const router = createRouter({
 	routeTree,
 	defaultPreload: 'intent',
 	defaultPreloadStaleTime: 0,
 	defaultPendingComponent: Spinner,
+	defaultErrorComponent: RouteError,
 	context: { queryClient, auth: undefined! },
 })
 
@@ -28,9 +43,6 @@ declare module '@tanstack/react-router' {
 // eslint-disable-next-line react-refresh/only-export-components
 function App() {
 	const auth = useAuth()
-
-	if (!auth.isReady) return <Spinner />
-
 	return <RouterProvider router={router} context={{ auth }} />
 }
 
