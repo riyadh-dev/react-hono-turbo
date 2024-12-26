@@ -29,6 +29,7 @@ const router = createRouter({
 	defaultPreloadStaleTime: 0,
 	defaultPendingComponent: Spinner,
 	defaultErrorComponent: RouteError,
+	 
 	context: { queryClient, auth: undefined! },
 })
 
@@ -44,6 +45,7 @@ function App() {
 	return <RouterProvider router={router} context={{ auth }} />
 }
 
+ 
 const rootElement = document.getElementById('app')!
 
 if (!rootElement.innerHTML) {

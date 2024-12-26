@@ -31,7 +31,7 @@ function NoteEditPage() {
 			return await res.json()
 		},
 		onSuccess() {
-			queryClient.invalidateQueries({ queryKey: ['notes'] })
+			void queryClient.invalidateQueries({ queryKey: ['notes'] })
 			void navigate({
 				to: '/notes/$id',
 				params: { id: id.toString() },

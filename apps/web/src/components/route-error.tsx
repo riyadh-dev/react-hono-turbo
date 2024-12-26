@@ -17,7 +17,7 @@ export default function RouteError({
 
 	useEffect(() => {
 		if (error.message === 'UNAUTHORIZED') {
-			auth.signOut().then(() => navigate({ to: '/login' }))
+			void auth.signOut().then(() => navigate({ to: '/login' }))
 		}
 	}, [auth, error.message, navigate])
 

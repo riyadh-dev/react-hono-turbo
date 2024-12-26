@@ -8,6 +8,6 @@ serve({ fetch: app.fetch, port: env.API_PORT })
 
 console.log(
 	env.NODE_ENV === 'production'
-		? `Prod: On Port ${env.API_PORT}:`
-		: `Dev: http://localhost:${env.API_PORT}/api`
+		? `Prod: On Port ${env.API_PORT.toString()}:`
+		: `Dev: http://localhost:${env.API_PORT.toString()}/api`
 )

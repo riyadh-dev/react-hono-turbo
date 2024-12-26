@@ -29,6 +29,7 @@ function NotesPage() {
 		},
 	})
 
+	 
 	const user = auth.user!
 	return (
 		<div className='flex h-full min-h-screen flex-col'>

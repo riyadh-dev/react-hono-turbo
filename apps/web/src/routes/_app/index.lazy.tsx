@@ -11,6 +11,7 @@ function HomeComponent() {
 	const signOut = () =>
 		void auth.signOut().then(() => navigate({ to: '/login' }))
 
+	 
 	const user = auth.user!
 	return (
 		<main className='relative min-h-screen content-center space-y-12'>

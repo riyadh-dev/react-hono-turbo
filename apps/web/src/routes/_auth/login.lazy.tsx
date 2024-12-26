@@ -21,12 +21,16 @@ function LoginPage() {
 	const [isPending, setIsPending] = useState(false)
 	const [isError, setIsError] = useState(false)
 
-	const onSubmit = form.handleSubmit(async (form) => {
+	const onSubmit = form.handleSubmit((form) => {
 		setIsPending(true)
 		auth.signIn(form)
 			.then(() => router.invalidate())
-			.catch(() => setIsError(true))
-			.finally(() => setIsPending(false))
+			.catch(() => {
+				setIsError(true)
+			})
+			.finally(() => {
+				setIsPending(false)
+			})
 	})
 
 	return (

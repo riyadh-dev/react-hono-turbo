@@ -48,12 +48,7 @@ export function verifyAuth() {
 			})
 		}
 
-		setSignedCookie(c, 'session', token, env.COOKIE_SECRET, {
-			httpOnly: true,
-			sameSite: 'lax',
-			expires: session.expiresAt,
-			secure: env.NODE_ENV === 'production',
-		})
+		await setSessionTokenCookie(c, token)
 
 		c.set('user', user)
 		c.set('session', session)
@@ -63,7 +58,7 @@ export function verifyAuth() {
 }
 
 export async function setSessionTokenCookie(c: Context, token: string) {
-	setSignedCookie(c, 'session', token, env.COOKIE_SECRET, {
+	await setSignedCookie(c, 'session', token, env.COOKIE_SECRET, {
 		httpOnly: true,
 		sameSite: 'lax',
 		expires: new Date(Date.now() + env.SESSION_EXP),
@@ -72,7 +67,7 @@ export async function setSessionTokenCookie(c: Context, token: string) {
 }
 
 export async function deleteSessionTokenCookie(c: Context) {
-	setSignedCookie(c, 'session', '', env.COOKIE_SECRET, {
+	await setSignedCookie(c, 'session', '', env.COOKIE_SECRET, {
 		httpOnly: true,
 		sameSite: 'lax',
 		maxAge: 0,

@@ -15,7 +15,8 @@ export default [
 		],
 	},
 	js.configs.recommended,
-	...ts.configs.recommended,
+	...ts.configs.recommendedTypeChecked,
+	...ts.configs.stylistic,
 	prettier,
 	{
 		rules: {

@@ -65,7 +65,7 @@ const authRoutes = new Hono()
 			})
 
 		const sessionToken = generateSessionToken()
-		setSessionTokenCookie(c, sessionToken)
+		await setSessionTokenCookie(c, sessionToken)
 		const session = await createSession(sessionToken, user.id)
 
 		return c.json({
@@ -75,7 +75,7 @@ const authRoutes = new Hono()
 	})
 
 	.delete('/sign-out', verifyAuth(), async (c) => {
-		Promise.all([
+		await Promise.all([
 			invalidateSession(c.var.session.id),
 			deleteSessionTokenCookie(c),
 		])
