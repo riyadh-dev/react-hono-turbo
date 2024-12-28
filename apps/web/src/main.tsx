@@ -9,8 +9,6 @@ import { AuthProvider } from '@/auth-provider'
 import '@/index.css'
 import { routeTree } from '@/route-tree.gen'
 
-import RouteError from './components/route-error'
-
 const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
@@ -28,8 +26,7 @@ const router = createRouter({
 	defaultPreload: 'intent',
 	defaultPreloadStaleTime: 0,
 	defaultPendingComponent: Spinner,
-	defaultErrorComponent: RouteError,
-	 
+	//defaultErrorComponent: RouteError,
 	context: { queryClient, auth: undefined! },
 })
 
@@ -45,7 +42,6 @@ function App() {
 	return <RouterProvider router={router} context={{ auth }} />
 }
 
- 
 const rootElement = document.getElementById('app')!
 
 if (!rootElement.innerHTML) {

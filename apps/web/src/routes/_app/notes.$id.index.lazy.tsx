@@ -1,31 +1,27 @@
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { Link, createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 
-import api from '@/lib/api'
-import { assertValidResponse } from '@/lib/utils'
-
 export const Route = createLazyFileRoute('/_app/notes/$id/')({
 	component: NotePage,
 })
 
 function NotePage() {
 	const { id } = Route.useParams()
+	const { auth } = Route.useRouteContext()
 	const { queryClient } = Route.useRouteContext()
 	const navigate = useNavigate()
 
 	const noteQuery = useSuspenseQuery({
 		queryKey: ['note', id],
 		async queryFn() {
-			const res = await api.notes[':id'].$get({ param: { id } })
-			assertValidResponse(res.status)
+			const res = await auth.api.notes[':id'].$get({ param: { id } })
 			return await res.json()
 		},
 	})
 
 	const deleteNoteMutation = useMutation({
 		async mutationFn() {
-			const res = await api.notes[':id'].$delete({ param: { id } })
-			assertValidResponse(res.status)
+			const res = await auth.api.notes[':id'].$delete({ param: { id } })
 			return await res.json()
 		},
 		onSuccess() {

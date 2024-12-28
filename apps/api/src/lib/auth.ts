@@ -1,26 +1,19 @@
-import { sha256 } from '@oslojs/crypto/sha2'
-import {
-	encodeBase32LowerCaseNoPadding,
-	encodeHexLowerCase,
-} from '@oslojs/encoding'
 import { eq } from 'drizzle-orm'
 import { Context } from 'hono'
-import { getSignedCookie, setSignedCookie } from 'hono/cookie'
+import { setSignedCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
+import { SignJWT, jwtVerify } from 'jose'
 
 import { db } from '@/db'
-import { sessionTable, userTable } from '@/db/schema'
+import { userTable } from '@/db/schema'
 
 import env from '@/lib/env'
 
-import { TSession, TUser } from '@/types'
+import { TUser } from '@/types'
 
 export interface IAuthEnv {
-	Variables: {
-		user: TUser
-		session: TSession
-	}
+	Variables: { user: TUser }
 }
 
 export function verifyAuth() {
@@ -33,102 +26,84 @@ export function verifyAuth() {
 			}
 		}
 
-		const cookies = await getSignedCookie(c, env.COOKIE_SECRET)
-		const token = cookies.session
-		if (!token) {
+		const token = c.req.header('Authorization')?.replace('Bearer ', '')
+		if (!token)
 			throw new HTTPException(401, {
 				res: c.json({ message: 'Unauthorized' }),
 			})
-		}
 
-		const { session, user } = await validateSessionToken(token)
-		if (!user) {
+		const {
+			payload: { userId },
+		} = await verifyToken<{ userId: number }>(
+			c,
+			token,
+			env.ACCESS_TOKEN_SECRET
+		)
+
+		const res = await db.query.userTable.findFirst({
+			where: eq(userTable.id, userId),
+		})
+		if (!res)
 			throw new HTTPException(401, {
 				res: c.json({ message: 'Unauthorized' }),
 			})
-		}
 
-		await setSessionTokenCookie(c, token)
+		const { password: _, ...user } = res
 
 		c.set('user', user)
-		c.set('session', session)
 
 		await next()
 	})
 }
 
-export async function setSessionTokenCookie(c: Context, token: string) {
-	await setSignedCookie(c, 'session', token, env.COOKIE_SECRET, {
-		httpOnly: true,
-		sameSite: 'lax',
-		expires: new Date(Date.now() + env.SESSION_EXP),
-		secure: env.NODE_ENV === 'production',
-	})
+export async function generateTokens(userId: number) {
+	const textEncoder = new TextEncoder()
+
+	const [accessToken, refreshToken] = await Promise.all([
+		new SignJWT({ userId })
+			.setProtectedHeader({ alg: 'HS256' })
+			.setIssuedAt()
+			.setExpirationTime(new Date(Date.now() + env.ACCESS_TOKEN_EXP))
+			.sign(textEncoder.encode(env.ACCESS_TOKEN_SECRET)),
+
+		new SignJWT({ userId })
+			.setProtectedHeader({ alg: 'HS256' })
+			.setIssuedAt()
+			.setExpirationTime(new Date(Date.now() + env.REFRESH_TOKEN_EXP))
+			.sign(textEncoder.encode(env.REFRESH_TOKEN_SECRET)),
+	])
+
+	return { accessToken, refreshToken }
 }
 
-export async function deleteSessionTokenCookie(c: Context) {
-	await setSignedCookie(c, 'session', '', env.COOKIE_SECRET, {
-		httpOnly: true,
-		sameSite: 'lax',
-		maxAge: 0,
-		secure: env.NODE_ENV === 'production',
-	})
-}
-
-export function generateSessionToken() {
-	const bytes = new Uint8Array(20)
-	crypto.getRandomValues(bytes)
-	const token = encodeBase32LowerCaseNoPadding(bytes)
-	return token
-}
-
-export async function createSession(token: string, userId: number) {
-	const sessionId = encodeHexLowerCase(
-		sha256(new TextEncoder().encode(token))
-	)
-	const session: TSession = {
-		id: sessionId,
-		userId,
-		expiresAt: new Date(Date.now() + env.SESSION_EXP),
-	}
-	await db.insert(sessionTable).values(session)
-	return session
-}
-
-export async function validateSessionToken(token: string) {
-	const sessionId = encodeHexLowerCase(
-		sha256(new TextEncoder().encode(token))
-	)
-
-	const result = await db
-		.select({ user: userTable, session: sessionTable })
-		.from(sessionTable)
-		.innerJoin(userTable, eq(sessionTable.userId, userTable.id))
-		.where(eq(sessionTable.id, sessionId))
-	if (result.length < 1) {
-		return { session: null, user: null }
-	}
-
-	const { user, session } = result[0]
-
-	if (Date.now() >= session.expiresAt.getTime()) {
-		await db.delete(sessionTable).where(eq(sessionTable.id, session.id))
-		return { session: null, user: null }
-	}
-
-	if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
-		session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
-		await db
-			.update(sessionTable)
-			.set({
-				expiresAt: session.expiresAt,
+export async function verifyToken<T>(
+	c: Context,
+	token: string,
+	secret: string
+) {
+	try {
+		return await jwtVerify<T>(token, new TextEncoder().encode(secret))
+	} catch (err) {
+		if (
+			err instanceof Error &&
+			'code' in err &&
+			err.code === 'ERR_JWT_EXPIRED'
+		)
+			throw new HTTPException(401, {
+				res: c.json({ message: 'Unauthorized' }),
 			})
-			.where(eq(sessionTable.id, session.id))
-	}
 
-	return { session, user }
+		throw new HTTPException(500, {
+			res: c.json({ message: 'Internal Server Error' }),
+		})
+	}
 }
 
-export async function invalidateSession(sessionId: string) {
-	await db.delete(sessionTable).where(eq(sessionTable.id, sessionId))
+export async function setRefreshTokenCookie(c: Context, token: string) {
+	await setSignedCookie(c, 'refreshToken', token, env.COOKIE_SECRET, {
+		httpOnly: true,
+		sameSite: 'lax',
+		expires: new Date(Date.now() + env.REFRESH_TOKEN_EXP),
+		secure: env.NODE_ENV === 'production',
+	})
 }

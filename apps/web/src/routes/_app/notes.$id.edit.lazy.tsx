@@ -2,8 +2,7 @@ import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 
-import api from '@/lib/api'
-import { assertValidResponse, useZodForm } from '@/lib/utils'
+import { useZodForm } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_app/notes/$id/edit')({
 	component: NoteEditPage,
@@ -18,16 +17,16 @@ type TSchema = z.infer<typeof schema>
 
 function NoteEditPage() {
 	const { id } = Route.useParams()
+	const { auth } = Route.useRouteContext()
 	const { queryClient } = Route.useRouteContext()
 	const navigate = useNavigate()
 
 	const addNoteMutation = useMutation({
 		async mutationFn(values: TSchema) {
-			const res = await api.notes[':id'].$put({
+			const res = await auth.api.notes[':id'].$put({
 				param: { id },
 				form: values,
 			})
-			assertValidResponse(res.status)
 			return await res.json()
 		},
 		onSuccess() {
@@ -42,8 +41,7 @@ function NoteEditPage() {
 	const noteQuery = useSuspenseQuery({
 		queryKey: ['note', id],
 		async queryFn() {
-			const res = await api.notes[':id'].$get({ param: { id } })
-			assertValidResponse(res.status)
+			const res = await auth.api.notes[':id'].$get({ param: { id } })
 			return await res.json()
 		},
 	})

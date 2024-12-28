@@ -1,19 +1,19 @@
 import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
+import { deleteCookie, getSignedCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 
 import { db } from '@/db'
 import { userTable } from '@/db/schema'
 
 import {
-	createSession,
-	deleteSessionTokenCookie,
-	generateSessionToken,
-	invalidateSession,
-	setSessionTokenCookie,
+	generateTokens,
+	setRefreshTokenCookie,
 	verifyAuth,
+	verifyToken,
 } from '@/lib/auth'
+import env from '@/lib/env'
 import { hashPassword, verifyPassword } from '@/lib/password'
 
 import { signInSchema, signUpSchema } from '@/validation/users'
@@ -64,21 +64,51 @@ const authRoutes = new Hono()
 				res: c.json({ message: 'Unauthorized' }),
 			})
 
-		const sessionToken = generateSessionToken()
-		await setSessionTokenCookie(c, sessionToken)
-		const session = await createSession(sessionToken, user.id)
+		const { accessToken, refreshToken } = await generateTokens(user.id)
 
-		return c.json({
-			...user,
-			expiresAt: session.expiresAt,
-		})
+		await setRefreshTokenCookie(c, refreshToken)
+
+		return c.json({ user, accessToken })
 	})
 
-	.delete('/sign-out', verifyAuth(), async (c) => {
-		await Promise.all([
-			invalidateSession(c.var.session.id),
-			deleteSessionTokenCookie(c),
-		])
+	.put('/refresh', async (c) => {
+		const oldRefreshToken = await getSignedCookie(
+			c,
+			env.COOKIE_SECRET,
+			'refreshToken'
+		)
+		if (!oldRefreshToken)
+			throw new HTTPException(401, {
+				res: c.json({ message: 'Unauthorized' }),
+			})
+
+		const {
+			payload: { userId },
+		} = await verifyToken<{ userId: number }>(
+			c,
+			oldRefreshToken,
+			env.REFRESH_TOKEN_SECRET
+		)
+
+		const fullUser = await db.query.userTable.findFirst({
+			where: eq(userTable.id, userId),
+		})
+		if (!fullUser)
+			throw new HTTPException(401, {
+				res: c.json({ message: 'Unauthorized' }),
+			})
+
+		const { accessToken, refreshToken } = await generateTokens(userId)
+
+		await setRefreshTokenCookie(c, refreshToken)
+
+		const { password: _, ...user } = fullUser
+
+		return c.json({ user, accessToken })
+	})
+
+	.delete('/sign-out', verifyAuth(), (c) => {
+		deleteCookie(c, 'refreshToken')
 		return c.json({ message: 'Signed out successfully' })
 	})
 

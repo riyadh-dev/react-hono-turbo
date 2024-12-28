@@ -12,7 +12,3 @@ export function useZodForm<F extends FieldValues>(props: TUseZodFormProps<F>) {
 		...props,
 	})
 }
-
-export function assertValidResponse(status: number) {
-	if (status === 401) throw new Error('UNAUTHORIZED')
-}

@@ -12,7 +12,7 @@ export interface ISignInForm {
 	password: string
 }
 
-export type TUser = Awaited<
+export type TSession = Awaited<
 	ReturnType<
 		Awaited<ReturnType<Client['api']['auth']['sign-in']['$post']>>['json']
 	>
@@ -20,10 +20,11 @@ export type TUser = Awaited<
 
 export interface IAuthContext {
 	isAuth: boolean
-	user: TUser | null
+	user: TSession['user'] | null
 	signUp: (form: ISignUpForm) => Promise<void>
 	signIn: (form: ISignInForm) => Promise<void>
 	signOut: () => Promise<void>
+	api: Client['api']
 }
 
 const AuthContext = createContext<IAuthContext | null>(null)

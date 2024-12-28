@@ -1,54 +1,91 @@
-import { ReactNode, useState } from 'react'
+import { hcWithType } from 'api/hc'
+import { ReactNode, useEffect, useState } from 'react'
 
-import AuthContext, { ISignInForm, ISignUpForm, TUser } from '@/auth-context'
+import Spinner from '@/components/spinner'
 
-import api from './lib/api'
+import AuthContext, { ISignInForm, ISignUpForm, TSession } from '@/auth-context'
+
+const baseApi = hcWithType(import.meta.env.VITE_API_URL, {
+	init: { credentials: 'include' },
+}).api
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-	const [user, setUser] = useState<TUser | null>(getCurrentUser())
-	const isAuth = !!user
+	const [isPending, setIsPending] = useState(true)
+	const [session, setSession] = useState<TSession | null>(null)
+	const isAuth = !!session
+
+	function getAuthHeader() {
+		return {
+			Authorization: session ? `Bearer ${session.accessToken}` : '',
+		}
+	}
 
 	async function signUp(form: ISignUpForm) {
-		await api.auth['sign-up'].$post({ form })
+		await baseApi.auth['sign-up'].$post({ form })
 	}
 
 	async function signIn(form: ISignInForm) {
-		const res = await api.auth['sign-in'].$post({ form })
-		const user = await res.json()
-		setUser(user)
-		setCurrentUser(user)
+		const res = await baseApi.auth['sign-in'].$post({ form })
+		const session = await res.json()
+		setSession(session)
 	}
 
 	async function signOut() {
-		await api.auth['sign-out'].$delete()
-		setUser(null)
-		setCurrentUser(null)
+		await baseApi.auth['sign-out'].$delete(undefined, {
+			headers: getAuthHeader(),
+		})
+		setSession(null)
 	}
 
+	useEffect(() => {
+		async function refresh() {
+			const res = await baseApi.auth.refresh.$put()
+			if (res.status !== 200) return
+			const session = await res.json()
+			setSession(session)
+		}
+
+		void refresh().finally(() => setIsPending(false))
+	}, [])
+
+	if (isPending) return <Spinner />
+
+	const { api } = hcWithType(import.meta.env.VITE_API_URL, {
+		init: {
+			credentials: 'include',
+			headers: getAuthHeader(),
+		},
+		async fetch(input, requestInit, _, __) {
+			const res = await fetch(input, requestInit)
+			if (res.status !== 401) return res
+
+			const refreshRes = await baseApi.auth.refresh.$put()
+			if (refreshRes.status !== 200) return res
+
+			const newSession = await refreshRes.json()
+			setSession(newSession)
+			return await fetch(input, {
+				...requestInit,
+				headers: {
+					...requestInit?.headers,
+					Authorization: `Bearer ${newSession.accessToken}`,
+				},
+			})
+		},
+	})
+
 	return (
-		<AuthContext.Provider value={{ isAuth, user, signUp, signIn, signOut }}>
+		<AuthContext.Provider
+			value={{
+				isAuth,
+				user: session?.user ?? null,
+				signUp,
+				signIn,
+				signOut,
+				api,
+			}}
+		>
 			{children}
 		</AuthContext.Provider>
 	)
-}
-
-const USER_KEY = 'current-user'
-
-function getCurrentUser() {
-	if (typeof window === 'undefined') return null
-	const userStr = localStorage.getItem(USER_KEY)
-	if (!userStr) return null
-
-	return JSON.parse(userStr) as TUser
-}
-
-function setCurrentUser(user: TUser | null) {
-	if (typeof window === 'undefined') return
-
-	if (!user) {
-		localStorage.removeItem(USER_KEY)
-		return
-	}
-
-	localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
