@@ -1,19 +1,12 @@
 import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
-import { deleteCookie, getSignedCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 
 import { db } from '@/db'
 import { userTable } from '@/db/schema'
 
-import {
-	generateTokens,
-	setRefreshTokenCookie,
-	verifyAuth,
-	verifyToken,
-} from '@/lib/auth'
-import env from '@/lib/env'
+import { createSession, deleteSession, verifyAuth } from '@/lib/auth'
 import { hashPassword, verifyPassword } from '@/lib/password'
 
 import { signInSchema, signUpSchema } from '@/validation/users'
@@ -45,15 +38,15 @@ const authRoutes = new Hono()
 	.post('/sign-in', zValidator('form', signInSchema), async (c) => {
 		const form = c.req.valid('form')
 
-		const result = await db.query.userTable.findFirst({
+		const fullUser = await db.query.userTable.findFirst({
 			where: eq(userTable.email, form.email),
 		})
-		if (!result)
+		if (!fullUser)
 			throw new HTTPException(401, {
 				res: c.json({ message: 'Unauthorized' }),
 			})
 
-		const { password, ...user } = result
+		const { password, ...user } = fullUser
 
 		const isValidPassword = await verifyPassword({
 			hash: password,
@@ -64,52 +57,17 @@ const authRoutes = new Hono()
 				res: c.json({ message: 'Unauthorized' }),
 			})
 
-		const { accessToken, refreshToken } = await generateTokens(user.id)
-
-		await setRefreshTokenCookie(c, refreshToken)
-
-		return c.json({ user, accessToken })
-	})
-
-	.put('/refresh', async (c) => {
-		const oldRefreshToken = await getSignedCookie(
-			c,
-			env.COOKIE_SECRET,
-			'refreshToken'
-		)
-		if (!oldRefreshToken)
-			throw new HTTPException(401, {
-				res: c.json({ message: 'Unauthorized' }),
-			})
-
-		const {
-			payload: { userId },
-		} = await verifyToken<{ userId: number }>(
-			c,
-			oldRefreshToken,
-			env.REFRESH_TOKEN_SECRET
-		)
-
-		const fullUser = await db.query.userTable.findFirst({
-			where: eq(userTable.id, userId),
-		})
-		if (!fullUser)
-			throw new HTTPException(401, {
-				res: c.json({ message: 'Unauthorized' }),
-			})
-
-		const { accessToken, refreshToken } = await generateTokens(userId)
-
-		await setRefreshTokenCookie(c, refreshToken)
-
-		const { password: _, ...user } = fullUser
-
-		return c.json({ user, accessToken })
+		await createSession(c, user.id)
+		return c.json({ user })
 	})
 
 	.delete('/sign-out', verifyAuth(), (c) => {
-		deleteCookie(c, 'refreshToken')
+		deleteSession(c)
 		return c.json({ message: 'Signed out successfully' })
+	})
+
+	.get('/me', verifyAuth(), (c) => {
+		return c.json({ user: c.var.user })
 	})
 
 export default authRoutes

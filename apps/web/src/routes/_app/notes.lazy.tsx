@@ -6,6 +6,8 @@ import {
 	useNavigate,
 } from '@tanstack/react-router'
 
+import api from '@/lib/api'
+
 export const Route = createLazyFileRoute('/_app/notes')({
 	component: NotesPage,
 })
@@ -20,7 +22,7 @@ function NotesPage() {
 	const notesQuery = useSuspenseQuery({
 		queryKey: ['notes'],
 		async queryFn() {
-			const res = await auth.api.notes.$get()
+			const res = await api.notes.$get()
 			return await res.json()
 		},
 	})

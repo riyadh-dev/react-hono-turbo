@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import ReactDOM from 'react-dom/client'
 
+import RouteError from '@/components/route-error'
 import Spinner from '@/components/spinner'
 
 import { useAuth } from '@/auth-context'
@@ -9,24 +10,14 @@ import { AuthProvider } from '@/auth-provider'
 import '@/index.css'
 import { routeTree } from '@/route-tree.gen'
 
-const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			retry(_, error) {
-				if (error.message === 'UNAUTHORIZED') return false
-				return true
-			},
-		},
-		mutations: { retry: false },
-	},
-})
+const queryClient = new QueryClient()
 
 const router = createRouter({
 	routeTree,
 	defaultPreload: 'intent',
 	defaultPreloadStaleTime: 0,
 	defaultPendingComponent: Spinner,
-	//defaultErrorComponent: RouteError,
+	defaultErrorComponent: RouteError,
 	context: { queryClient, auth: undefined! },
 })
 

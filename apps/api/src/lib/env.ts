@@ -4,15 +4,11 @@ const envSchema = z.object({
 	NODE_ENV: z.enum(['development', 'production']).default('development'),
 	API_PORT: z.coerce.number(),
 	DATABASE_URL: z.string().url(),
-	CLIENT_ORIGINS: z
-		.string()
-		.transform((origins) => origins.split(','))
-		.pipe(z.array(z.string().url()).min(1)),
+	CLIENT_ORIGIN: z.string().url(),
 	COOKIE_SECRET: z.string().min(32),
-	ACCESS_TOKEN_SECRET: z.string().min(32),
-	REFRESH_TOKEN_SECRET: z.string().min(32),
-	ACCESS_TOKEN_EXP: z.coerce.number().int().min(1),
-	REFRESH_TOKEN_EXP: z.coerce.number().int().min(1),
+	TOKEN_SECRET: z.string().min(32),
+	COOKIE_EXP: z.coerce.number().int().min(1),
+	TOKEN_EXP: z.coerce.number().int().min(1),
 })
 
 const parsedEnv = envSchema.safeParse(process.env)

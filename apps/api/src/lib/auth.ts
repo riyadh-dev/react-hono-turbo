@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { Context } from 'hono'
-import { setSignedCookie } from 'hono/cookie'
+import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
 import { SignJWT, jwtVerify } from 'jose'
@@ -19,91 +19,81 @@ export interface IAuthEnv {
 export function verifyAuth() {
 	return createMiddleware<IAuthEnv>(async (c, next) => {
 		if (c.req.method !== 'GET') {
-			if (!env.CLIENT_ORIGINS.includes(c.req.header('Origin') ?? '')) {
+			if (env.CLIENT_ORIGIN !== c.req.header('Origin')) {
 				throw new HTTPException(403, {
 					res: c.json({ message: 'Forbidden' }),
 				})
 			}
 		}
 
-		const token = c.req.header('Authorization')?.replace('Bearer ', '')
-		if (!token)
-			throw new HTTPException(401, {
-				res: c.json({ message: 'Unauthorized' }),
-			})
-
-		const {
-			payload: { userId },
-		} = await verifyToken<{ userId: number }>(
-			c,
-			token,
-			env.ACCESS_TOKEN_SECRET
-		)
-
-		const res = await db.query.userTable.findFirst({
-			where: eq(userTable.id, userId),
-		})
-		if (!res)
-			throw new HTTPException(401, {
-				res: c.json({ message: 'Unauthorized' }),
-			})
-
-		const { password: _, ...user } = res
-
-		c.set('user', user)
+		c.set('user', await verifySession(c))
 
 		await next()
 	})
 }
 
-export async function generateTokens(userId: number) {
-	const textEncoder = new TextEncoder()
-
-	const [accessToken, refreshToken] = await Promise.all([
-		new SignJWT({ userId })
-			.setProtectedHeader({ alg: 'HS256' })
-			.setIssuedAt()
-			.setExpirationTime(new Date(Date.now() + env.ACCESS_TOKEN_EXP))
-			.sign(textEncoder.encode(env.ACCESS_TOKEN_SECRET)),
-
-		new SignJWT({ userId })
-			.setProtectedHeader({ alg: 'HS256' })
-			.setIssuedAt()
-			.setExpirationTime(new Date(Date.now() + env.REFRESH_TOKEN_EXP))
-			.sign(textEncoder.encode(env.REFRESH_TOKEN_SECRET)),
-	])
-
-	return { accessToken, refreshToken }
+export async function encrypt(userId: number) {
+	return new SignJWT({ userId })
+		.setProtectedHeader({ alg: 'HS256' })
+		.setIssuedAt()
+		.setExpirationTime(new Date(Date.now() + env.TOKEN_EXP))
+		.sign(new TextEncoder().encode(env.TOKEN_SECRET))
 }
 
-export async function verifyToken<T>(
-	c: Context,
-	token: string,
-	secret: string
-) {
+export async function decrypt<T>(session = '') {
 	try {
-		return await jwtVerify<T>(token, new TextEncoder().encode(secret))
-	} catch (err) {
-		if (
-			err instanceof Error &&
-			'code' in err &&
-			err.code === 'ERR_JWT_EXPIRED'
+		const { payload } = await jwtVerify<T>(
+			session,
+			new TextEncoder().encode(env.TOKEN_SECRET),
+			{ algorithms: ['HS256'] }
 		)
-			throw new HTTPException(401, {
-				res: c.json({ message: 'Unauthorized' }),
-			})
-
-		throw new HTTPException(500, {
-			res: c.json({ message: 'Internal Server Error' }),
-		})
+		return payload
+	} catch {
+		return null
 	}
 }
 
-export async function setRefreshTokenCookie(c: Context, token: string) {
-	await setSignedCookie(c, 'refreshToken', token, env.COOKIE_SECRET, {
+export async function createSession(c: Context, userId: number) {
+	const session = await encrypt(userId)
+	await setSignedCookie(c, 'session', session, env.COOKIE_SECRET, {
 		httpOnly: true,
-		sameSite: 'lax',
-		expires: new Date(Date.now() + env.REFRESH_TOKEN_EXP),
-		secure: env.NODE_ENV === 'production',
+		secure: true,
+		sameSite: 'none',
+		domain: env.CLIENT_ORIGIN,
+		expires: new Date(Date.now() + env.COOKIE_EXP),
 	})
+}
+
+export async function verifySession(c: Context) {
+	const cookie = await getSignedCookie(c, env.COOKIE_SECRET, 'session')
+	if (!cookie)
+		throw new HTTPException(401, {
+			res: c.json({ message: 'Unauthorized' }),
+		})
+
+	const session = await decrypt<{ userId: number }>(cookie)
+	if (!session)
+		throw new HTTPException(401, {
+			res: c.json({ message: 'Unauthorized' }),
+		})
+
+	const fullUser = await db.query.userTable.findFirst({
+		where: eq(userTable.id, session.userId),
+	})
+	if (!fullUser)
+		throw new HTTPException(401, {
+			res: c.json({ message: 'Unauthorized' }),
+		})
+
+	const exp = new Date(session.exp ?? 0)
+	if (Date.now() > exp.getTime() - env.COOKIE_EXP / 2) {
+		await createSession(c, session.userId)
+	}
+
+	const { password: _, ...user } = fullUser
+	return user
+}
+
+export function deleteSession(c: Context) {
+	deleteCookie(c, 'session')
 }

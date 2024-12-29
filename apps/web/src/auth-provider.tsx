@@ -1,88 +1,57 @@
-import { hcWithType } from 'api/hc'
-import { ReactNode, useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { ReactNode, useState } from 'react'
 
-import Spinner from '@/components/spinner'
+import api from '@/lib/api'
 
-import AuthContext, { ISignInForm, ISignUpForm, TSession } from '@/auth-context'
+import AuthContext, { ISignInForm, ISignUpForm, TUser } from '@/auth-context'
 
-const baseApi = hcWithType(import.meta.env.VITE_API_URL, {
-	init: { credentials: 'include' },
-}).api
+import Spinner from './components/spinner'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-	const [isPending, setIsPending] = useState(true)
-	const [session, setSession] = useState<TSession | null>(null)
-	const isAuth = !!session
-
-	function getAuthHeader() {
-		return {
-			Authorization: session ? `Bearer ${session.accessToken}` : '',
-		}
-	}
+	const [user, setUser] = useState<TUser | null>(null)
+	const isAuth = !!user
 
 	async function signUp(form: ISignUpForm) {
-		await baseApi.auth['sign-up'].$post({ form })
+		await api.auth['sign-up'].$post({ form })
 	}
 
 	async function signIn(form: ISignInForm) {
-		const res = await baseApi.auth['sign-in'].$post({ form })
-		const session = await res.json()
-		setSession(session)
+		const res = await api.auth['sign-in'].$post({ form })
+		const { user } = await res.json()
+		setUser(user)
 	}
 
 	async function signOut() {
-		await baseApi.auth['sign-out'].$delete(undefined, {
-			headers: getAuthHeader(),
-		})
-		setSession(null)
+		await api.auth['sign-out'].$delete()
+		setUser(null)
 	}
 
-	useEffect(() => {
-		async function refresh() {
-			const res = await baseApi.auth.refresh.$put()
-			if (res.status !== 200) return
-			const session = await res.json()
-			setSession(session)
-		}
-
-		void refresh().finally(() => setIsPending(false))
-	}, [])
-
-	if (isPending) return <Spinner />
-
-	const { api } = hcWithType(import.meta.env.VITE_API_URL, {
-		init: {
-			credentials: 'include',
-			headers: getAuthHeader(),
+	const userQuery = useQuery({
+		queryKey: ['current-user'],
+		async queryFn() {
+			const res = await api.auth.me.$get()
+			if (!res.ok) return null
+			const { user } = await res.json()
+			setUser(user)
+			return user
 		},
-		async fetch(input, requestInit, _, __) {
-			const res = await fetch(input, requestInit)
-			if (res.status !== 401) return res
-
-			const refreshRes = await baseApi.auth.refresh.$put()
-			if (refreshRes.status !== 200) return res
-
-			const newSession = await refreshRes.json()
-			setSession(newSession)
-			return await fetch(input, {
-				...requestInit,
-				headers: {
-					...requestInit?.headers,
-					Authorization: `Bearer ${newSession.accessToken}`,
-				},
-			})
-		},
+		enabled: !isAuth,
+		refetchInterval: Infinity,
+		refetchOnMount: false,
+		refetchOnReconnect: false,
+		refetchOnWindowFocus: false,
 	})
+
+	if (userQuery.isPending) return <Spinner />
 
 	return (
 		<AuthContext.Provider
 			value={{
 				isAuth,
-				user: session?.user ?? null,
+				user,
 				signUp,
 				signIn,
 				signOut,
-				api,
 			}}
 		>
 			{children}

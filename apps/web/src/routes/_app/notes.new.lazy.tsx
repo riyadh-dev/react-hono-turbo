@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 
+import api from '@/lib/api'
 import { useZodForm } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_app/notes/new')({
@@ -16,13 +17,13 @@ const schema = z.object({
 type TSchema = z.infer<typeof schema>
 
 function NewNotePage() {
-	const { queryClient, auth } = Route.useRouteContext()
+	const { queryClient } = Route.useRouteContext()
 	const navigate = useNavigate()
 	const form = useZodForm({ schema })
 
 	const addNoteMutation = useMutation({
 		async mutationFn(values: TSchema) {
-			const res = await auth.api.notes.$post({ form: values })
+			const res = await api.notes.$post({ form: values })
 			return await res.json()
 		},
 		onSuccess({ noteId }) {
