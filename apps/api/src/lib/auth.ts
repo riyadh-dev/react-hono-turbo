@@ -59,7 +59,7 @@ export async function createSession(c: Context, userId: number) {
 		httpOnly: true,
 		secure: true,
 		sameSite: 'none',
-		domain: env.CLIENT_ORIGIN,
+		partitioned: true,
 		expires: new Date(Date.now() + env.COOKIE_EXP),
 	})
 }
