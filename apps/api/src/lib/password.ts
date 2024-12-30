@@ -1,13 +1,11 @@
 import { scryptAsync } from '@noble/hashes/scrypt'
-import { decodeHex, encodeHex } from 'oslo/encoding'
+import { decodeHex, encodeHexLowerCase } from '@oslojs/encoding'
 import { getRandomValues } from 'uncrypto'
 
-//used by seeding script
-
 export const hashPassword = async (password: string) => {
-	const salt = encodeHex(getRandomValues(new Uint8Array(16)))
+	const salt = encodeHexLowerCase(getRandomValues(new Uint8Array(16)))
 	const key = await generateKey(password, salt)
-	return `${salt}:${encodeHex(key)}`
+	return `${salt}:${encodeHexLowerCase(key)}`
 }
 
 export const verifyPassword = async ({
@@ -47,9 +45,10 @@ function constantTimeEqual(
 	}
 	return c === 0
 }
+
 const config = {
 	N: 16384,
 	r: 16,
 	p: 1,
 	dkLen: 64,
-}
+} as const
