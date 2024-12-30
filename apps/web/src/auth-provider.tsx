@@ -12,11 +12,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const isAuth = !!user
 
 	async function signUp(form: ISignUpForm) {
-		await api.auth['sign-up'].$post({ form })
+		const res = await api.auth['sign-up'].$post({ form })
+		if (!res.ok) throw await res.json()
 	}
 
 	async function signIn(form: ISignInForm) {
 		const res = await api.auth['sign-in'].$post({ form })
+		if (!res.ok) throw await res.json()
 		const { user } = await res.json()
 		setUser(user)
 	}

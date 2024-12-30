@@ -111,7 +111,7 @@ function JoinPage() {
 							disabled={isPending}
 							className='w-full rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 						>
-							Log in
+							Sign Up
 						</button>
 						<div className='h-5 text-center text-sm text-rose-600'>
 							{isError && 'Invalid email or password'}
