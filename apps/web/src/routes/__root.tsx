@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/router-devtools'
+import { lazy } from 'react'
 
 import { IAuthContext } from '@/auth-context'
 
@@ -22,3 +22,12 @@ function RootComponent() {
 		</>
 	)
 }
+
+const TanStackRouterDevtools =
+	process.env.NODE_ENV === 'production'
+		? () => null
+		: lazy(() =>
+				import('@tanstack/router-devtools').then((res) => ({
+					default: res.TanStackRouterDevtools,
+				}))
+			)
