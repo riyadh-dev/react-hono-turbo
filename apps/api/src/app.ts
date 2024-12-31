@@ -32,6 +32,7 @@ const app = new Hono()
 		})
 	})
 
+	.get('/', (c) => c.json({ message: 'Hello from React-Hono-Turbo API' }))
 	.get('/health', (c) => c.json({ message: 'Health OK' }))
 
 	.basePath('/api')
