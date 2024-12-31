@@ -5,6 +5,7 @@ import { logger } from 'hono/logger'
 
 import authRoutes from '@/routes/auth'
 import notesRoutes from '@/routes/notes'
+import usersRoutes from '@/routes/users'
 
 import env from '@/lib/env'
 
@@ -34,6 +35,7 @@ const app = new Hono()
 	.get('/health', (c) => c.json({ message: 'Health OK' }))
 
 	.basePath('/api')
+	.route('/users', usersRoutes)
 	.route('/auth', authRoutes)
 	.route('/notes', notesRoutes)
 

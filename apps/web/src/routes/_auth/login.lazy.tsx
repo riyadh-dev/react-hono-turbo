@@ -1,7 +1,9 @@
+import { useQuery } from '@tanstack/react-query'
 import { Link, createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { z } from 'zod'
 
+import api from '@/lib/api'
 import { useZodForm } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_auth/login')({
@@ -13,6 +15,8 @@ const schema = z.object({
 	password: z.string().min(8),
 })
 
+type TForm = z.infer<typeof schema>
+
 function LoginPage() {
 	const { auth } = Route.useRouteContext()
 	const router = useRouter()
@@ -21,7 +25,7 @@ function LoginPage() {
 	const [isPending, setIsPending] = useState(false)
 	const [isError, setIsError] = useState(false)
 
-	const onSubmit = form.handleSubmit((form) => {
+	function signIn(form: TForm) {
 		setIsPending(true)
 		auth.signIn(form)
 			.then(() => router.invalidate())
@@ -31,7 +35,26 @@ function LoginPage() {
 			.finally(() => {
 				setIsPending(false)
 			})
+	}
+
+	const mockUserQuery = useQuery({
+		queryKey: ['mock-user'],
+		async queryFn() {
+			const res = await api.users.mock.$get()
+			if (!res.ok) throw Error('Failed to fetch mock user')
+			return await res.json()
+		},
 	})
+
+	const onSubmit = form.handleSubmit(signIn)
+
+	function onMockSignIn() {
+		if (!mockUserQuery.data) return
+		signIn({
+			email: mockUserQuery.data.email,
+			password: 'password',
+		})
+	}
 
 	return (
 		<div className='h-svh content-center'>
@@ -85,13 +108,24 @@ function LoginPage() {
 					</div>
 
 					<div className='space-y-2'>
-						<button
-							type='submit'
-							disabled={isPending}
-							className='w-full rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
-						>
-							Log in
-						</button>
+						<div className='space-y-4'>
+							<button
+								type='submit'
+								disabled={isPending}
+								className='w-full rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+							>
+								Log in
+							</button>
+							<button
+								type='button'
+								disabled={isPending || !mockUserQuery.data}
+								onClick={onMockSignIn}
+								className='w-full animate-pulse rounded bg-orange-500 px-4 py-2 text-white hover:bg-orange-600 focus:bg-orange-400 disabled:bg-orange-300'
+							>
+								Mock Log in
+							</button>
+						</div>
+
 						<div className='h-5 text-center text-sm text-rose-600'>
 							{isError && 'Invalid email or password'}
 						</div>

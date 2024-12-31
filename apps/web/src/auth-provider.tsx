@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { ReactNode, useState } from 'react'
 
+import Spinner from '@/components/spinner'
+
 import api from '@/lib/api'
 
 import AuthContext, { ISignInForm, ISignUpForm, TUser } from '@/auth-context'
-
-import Spinner from './components/spinner'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<TUser | null>(null)
@@ -13,12 +13,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	async function signUp(form: ISignUpForm) {
 		const res = await api.auth['sign-up'].$post({ form })
-		if (!res.ok) throw await res.json()
+		if (!res.ok) throw Error('Failed to sign up')
 	}
 
 	async function signIn(form: ISignInForm) {
 		const res = await api.auth['sign-in'].$post({ form })
-		if (!res.ok) throw await res.json()
+		if (!res.ok) throw Error('Failed to sign in')
 		const { user } = await res.json()
 		setUser(user)
 	}
@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			setUser(user)
 			return user
 		},
+		retry: false,
 		enabled: !isAuth,
 		refetchInterval: Infinity,
 		refetchOnMount: false,
