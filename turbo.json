@@ -1,6 +1,14 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"ui": "tui",
+	"globalEnv": [
+		"DATABASE_URL",
+		"CLIENT_ORIGIN",
+		"COOKIE_SECRET",
+		"TOKEN_SECRET",
+		"COOKIE_EXP",
+		"TOKEN_EXP"
+	],
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build:lib"],
