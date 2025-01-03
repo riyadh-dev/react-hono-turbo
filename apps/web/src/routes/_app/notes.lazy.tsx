@@ -68,7 +68,7 @@ function NotesPage() {
 					</div>
 				) : (
 					<button
-						className='fixed -left-2 top-1/2 z-40 size-10 translate-y-1/2 rounded-full bg-indigo-500'
+						className='fixed -left-2 top-1/2 z-40 size-10 translate-y-1/2 rounded-full bg-indigo-500 md:hidden'
 						onClick={() => setIsSidebarOpen(true)}
 					>
 						{'->'}
