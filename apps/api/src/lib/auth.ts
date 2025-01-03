@@ -58,8 +58,8 @@ export async function createSession(c: Context, userId: number) {
 	await setSignedCookie(c, 'session', session, env.COOKIE_SECRET, {
 		httpOnly: true,
 		secure: true,
-		sameSite: 'none',
 		partitioned: true,
+		sameSite: 'none',
 		expires: new Date(Date.now() + env.COOKIE_EXP),
 	})
 }
@@ -95,5 +95,11 @@ export async function verifySession(c: Context) {
 }
 
 export function deleteSession(c: Context) {
-	deleteCookie(c, 'session')
+	deleteCookie(c, 'session', {
+		httpOnly: true,
+		secure: true,
+		partitioned: true,
+		sameSite: 'none',
+		signingSecret: env.COOKIE_SECRET,
+	})
 }
