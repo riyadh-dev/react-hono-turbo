@@ -14,7 +14,7 @@ function HomeComponent() {
 	const user = auth.user!
 	return (
 		<main className='relative min-h-screen content-center space-y-12'>
-			<h1 className='mx-auto w-fit bg-gradient-to-r from-indigo-400 via-purple-500 to-rose-500 bg-clip-text text-center text-7xl font-extrabold tracking-tight text-transparent'>
+			<h1 className='mx-auto w-fit bg-linear-to-r from-indigo-400 via-purple-500 to-rose-500 bg-clip-text text-center text-7xl font-extrabold tracking-tight text-transparent'>
 				REACT HONO TURBO
 			</h1>
 
@@ -59,13 +59,13 @@ function HomeComponent() {
 			<div className='absolute bottom-2 left-2 flex gap-x-2'>
 				<button
 					onClick={signOut}
-					className='rounded bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+					className='rounded-sm bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 				>
 					Sign out
 				</button>
 				<Link
 					to='/notes'
-					className='rounded border border-indigo-500 px-4 py-2 text-sm font-semibold text-indigo-500 hover:bg-indigo-100 focus:bg-indigo-200 disabled:text-indigo-300'
+					className='rounded-sm border border-indigo-500 px-4 py-2 text-sm font-semibold text-indigo-500 hover:bg-indigo-100 focus:bg-indigo-200 disabled:text-indigo-300'
 				>
 					Check Notes
 				</Link>

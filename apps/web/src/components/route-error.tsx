@@ -17,14 +17,14 @@ export default function RouteError({
 
 				<div className='flex justify-center gap-x-4'>
 					<button
-						className='rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+						className='rounded-sm bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 						onClick={reset}
 					>
 						Try again
 					</button>
 
 					<button
-						className='rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+						className='rounded-sm bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 						onClick={() => window.location.reload()}
 					>
 						Reload

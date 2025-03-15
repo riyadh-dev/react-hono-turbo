@@ -44,7 +44,7 @@ function NotePage() {
 				<button
 					onClick={deleteNote}
 					disabled={deleteNoteMutation.isPending}
-					className='rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+					className='rounded-sm bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 				>
 					{deleteNoteMutation.isPending
 						? 'Deleting...'
@@ -54,7 +54,7 @@ function NotePage() {
 				<Link
 					to='/notes/$id/edit'
 					params={{ id }}
-					className='rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+					className='rounded-sm bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 				>
 					Edit
 				</Link>

@@ -87,7 +87,7 @@ function NewNotePage() {
 					<button
 						type='submit'
 						disabled={isSubmitting}
-						className='rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+						className='rounded-sm bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 					>
 						Add
 					</button>

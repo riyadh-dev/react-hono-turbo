@@ -41,7 +41,7 @@ function NotesPage() {
 				<p className='max-md:hidden'>{user.email}</p>
 				<button
 					onClick={signOut}
-					className='rounded bg-slate-600 px-4 py-2 text-blue-100 hover:bg-blue-500 active:bg-blue-600'
+					className='rounded-sm bg-slate-600 px-4 py-2 text-blue-100 hover:bg-blue-500 active:bg-blue-600'
 				>
 					Logout
 				</button>
@@ -53,7 +53,7 @@ function NotesPage() {
 				</div>
 
 				{isSidebarOpen ? (
-					<div className='fixed left-0 top-20 flex h-[calc(100svh-5rem)] w-80 flex-col bg-stone-900 pb-8 md:hidden'>
+					<div className='fixed top-20 left-0 flex h-[calc(100svh-5rem)] w-80 flex-col bg-stone-900 pb-8 md:hidden'>
 						<SidebarInner
 							notes={notesQuery.data}
 							close={closeSidebar}
@@ -68,7 +68,7 @@ function NotesPage() {
 					</div>
 				) : (
 					<button
-						className='fixed -left-2 top-1/2 z-40 size-10 translate-y-1/2 rounded-full bg-indigo-500 md:hidden'
+						className='fixed top-1/2 -left-2 z-40 size-10 translate-y-1/2 rounded-full bg-indigo-500 md:hidden'
 						onClick={() => setIsSidebarOpen(true)}
 					>
 						{'->'}

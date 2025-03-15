@@ -98,7 +98,7 @@ function LoginPage() {
 								<button
 									type='submit'
 									disabled={isSubmitting}
-									className='w-full rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
+									className='w-full rounded-sm bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600 focus:bg-indigo-400 disabled:bg-indigo-300'
 								>
 									Log In
 								</button>
@@ -107,7 +107,7 @@ function LoginPage() {
 								type='button'
 								disabled={!mockUserQuery.data || isSubmitting}
 								onClick={onMockSignIn}
-								className='w-full animate-pulse rounded bg-orange-500 px-4 py-2 text-white hover:bg-orange-600 focus:bg-orange-400 disabled:bg-orange-300'
+								className='w-full animate-pulse rounded-sm bg-orange-500 px-4 py-2 text-white hover:bg-orange-600 focus:bg-orange-400 disabled:bg-orange-300'
 							>
 								Mock Log in
 							</button>
