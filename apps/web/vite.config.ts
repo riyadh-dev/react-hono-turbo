@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
@@ -13,5 +14,6 @@ export default defineConfig({
 	plugins: [
 		react({ babel: { plugins: ['babel-plugin-react-compiler'] } }),
 		TanStackRouterVite({ generatedRouteTree: './src/route-tree.gen.ts' }),
+		tailwindcss(),
 	],
 })
