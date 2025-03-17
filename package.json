@@ -19,8 +19,7 @@
 		"lint": "turbo lint",
 		"format": "prettier . -w -u -c --cache",
 		"check:spelling": "cspell . --cache",
-		"check:types": "turbo check:types",
-		"check:unused": "knip-bun"
+		"check:types": "turbo check:types"
 	},
 	"workspaces": [
 		"apps/*",
