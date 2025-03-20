@@ -5,6 +5,8 @@ import { z } from 'zod'
 
 import { Input } from '@/components/input'
 
+import { tryCatch } from '@/lib/utils'
+
 export const Route = createLazyFileRoute('/_auth/join')({
 	component: JoinPage,
 })
@@ -27,8 +29,15 @@ function JoinPage() {
 	const form = useForm({
 		defaultValues: { email: '', username: '', password: '' } as TSchema,
 		validators: { onSubmit: schema },
-		onSubmit: async ({ value }) => {
-			await auth.signUp(value).catch(() => setError(true))
+		async onSubmit({ value }) {
+			setError(false)
+
+			const [, error] = await tryCatch(auth.signUp(value))
+			if (error) {
+				setError(true)
+				return
+			}
+
 			void navigate({ to: '/login' })
 		},
 	})

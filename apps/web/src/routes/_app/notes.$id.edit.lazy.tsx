@@ -8,6 +8,7 @@ import { Input } from '@/components/input'
 import { TextArea } from '@/components/text-area'
 
 import api from '@/lib/api'
+import { tryCatch } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_app/notes/$id/edit')({
 	component: NoteEditPage,
@@ -52,9 +53,16 @@ function NoteEditPage() {
 		} as TSchema,
 		validators: { onSubmit: schema },
 		async onSubmit({ value }) {
-			await editNoteMutation
-				.mutateAsync(value)
-				.catch(() => setError(true))
+			setError(false)
+
+			const [, error] = await tryCatch(
+				editNoteMutation.mutateAsync(value)
+			)
+			if (error) {
+				setError(true)
+				return
+			}
+
 			void queryClient.invalidateQueries({ queryKey: ['notes'] })
 			void navigate({
 				to: '/notes/$id',

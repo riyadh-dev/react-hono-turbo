@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { Input } from '@/components/input'
 
 import api from '@/lib/api'
+import { tryCatch } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_auth/login')({
 	component: LoginPage,
@@ -39,7 +40,13 @@ function LoginPage() {
 		validators: { onSubmit: schema },
 		async onSubmit({ value }) {
 			setError(false)
-			await auth.signIn(value).catch(() => setError(true))
+
+			const [_, error] = await tryCatch(auth.signIn(value))
+			if (error) {
+				setError(true)
+				return
+			}
+
 			void router.invalidate()
 		},
 	})
@@ -47,12 +54,18 @@ function LoginPage() {
 	async function onMockSignIn() {
 		if (!mockUserQuery.data) return
 		setError(false)
-		await auth
-			.signIn({
+
+		const [, error] = await tryCatch(
+			auth.signIn({
 				email: mockUserQuery.data.email,
 				password: 'password',
 			})
-			.catch(() => setError(true))
+		)
+		if (error) {
+			setError(true)
+			return
+		}
+
 		void router.invalidate()
 	}
 

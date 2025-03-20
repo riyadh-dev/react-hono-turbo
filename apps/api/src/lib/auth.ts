@@ -12,6 +12,8 @@ import env from '@/lib/env'
 
 import { TUser } from '@/types'
 
+import { tryCatch } from './utils'
+
 export interface IAuthEnv {
 	Variables: { user: TUser }
 }
@@ -41,16 +43,16 @@ export async function encrypt(userId: number) {
 }
 
 export async function decrypt<T>(session = '') {
-	try {
-		const { payload } = await jwtVerify<T>(
-			session,
-			new TextEncoder().encode(env.TOKEN_SECRET),
-			{ algorithms: ['HS256'] }
-		)
-		return payload
-	} catch {
+	const [result, error] = await tryCatch(
+		jwtVerify<T>(session, new TextEncoder().encode(env.TOKEN_SECRET), {
+			algorithms: ['HS256'],
+		})
+	)
+	if (error) {
 		return null
 	}
+
+	return result.payload
 }
 
 export async function createSession(c: Context, userId: number) {
