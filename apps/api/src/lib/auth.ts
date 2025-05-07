@@ -9,10 +9,9 @@ import { db } from '@/db'
 import { userTable } from '@/db/schema'
 
 import env from '@/lib/env'
+import { tryCatch } from '@/lib/utils'
 
 import { TUser } from '@/types'
-
-import { tryCatch } from './utils'
 
 export interface IAuthEnv {
 	Variables: { user: TUser }
